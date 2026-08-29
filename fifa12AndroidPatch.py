@@ -51,7 +51,6 @@ def main():
         original_so = zin.read(LIB_PATH)
 
     original_hash = sha256(original_so)
-
     print(f"SHA-256: {original_hash}")
 
     if original_hash != EXPECTED_SHA256:
@@ -70,9 +69,7 @@ def main():
         sys.exit(1)
 
     patched_so = bytearray(original_so)
-
     patched_so[PATCH_OFFSET:PATCH_OFFSET + 4] = PATCHED_BYTES
-
     patched_so = bytes(patched_so)
 
     print(
@@ -100,8 +97,6 @@ def main():
     print("Patch successfully applied.")
     print(f"New APK: {output_path}")
     print()
-    #print("IMPORTANTE: el APK ha sido modificado y su firma original")
-    #print("ya no es válida. Debes volver a firmarlo antes de instalarlo.")
 
 
 if __name__ == "__main__":
