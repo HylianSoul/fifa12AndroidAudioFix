@@ -12,12 +12,41 @@ https://github.com/user-attachments/assets/0dc4e751-8ef0-496a-86e6-62779d9fc917
 https://github.com/user-attachments/assets/3d414ccf-6081-498d-a54b-829dfb595f90
 
 
-This this can be solved enabling the *forcing 32 bits binary emulation* if you use [VPhoneOS](https://play.google.com/store/apps/details?id=com.yoyo.snake.rush). The problem is you loose performance (FIFA 12 is not a problem in my phone, but I could be with other games) and you have dependency with one application.
+This this can be solved enabling the *forcing 32 bits binary emulation* if you use [VPhoneOS](https://play.google.com/store/apps/details?id=com.yoyo.snake.rush). The problem is you loose performance (*FIFA 12* is not a problem in my phone, but I could be with other games) and you have dependency with one application.
 
 I prefer to use [Virtual Master](https://play.google.com/store/apps/details?id=com.clone.android.dual.space) but I have this terrible bug using a different application (using 32 bit Android system, too) in a phone with arm64-v8a (64 bit ARM architecture).
 
 This patch is made to play this game in Virtual Master or other Android virtual machine. This patche is possible thanks to a *.so* patched version I found on the internet. Nevertheless, this version causes bugs when you change the visual settings, and the options are not correctly change. Comparing the original and the patched version, **I used ChatGPT as my assistant**. The final patch was tested several times in my phone and works correctly. To more information, you can see the conversation (written in Spanish, sorry) in the *ai* folder.
 
+## Execute the patch
+
+1. You need...
+
+    - You need to have an APK of the *FIFA 12* game.
+    - You need to have Python 3 installed and set in you PATH.
+
+2. Open a terminal in the folder with the *.py* file and the APK and execute...
+
+    ```sh
+    python3 fifa12AndroidPatch.py name_of_the_app.apk
+    ```
+
+    You will have a new APK with the suffix *_patched*.
+
+- Install this new APK with the data of the game and enjoy!
 
 
+## Little explanation
+
+This patch only modifies a bit from zero to one in the *libFIFA12.so* file.
+
+The code checks the SHA-256 of the *.so* file to ensure the patch can be applied. If you do not have the same checksum, it is not applied. You can delete or comment the following lines of the script to force the application of the patch, but I have not garantee the correct functionality of the new APK.
+
+```python
+if original_hash != EXPECTED_SHA256:
+    print()
+    print("ERROR: la libFIFA12.so no coincide con la versión esperada.")
+    print("No se ha aplicado ningún parche.")
+    sys.exit(1)
+```
 
