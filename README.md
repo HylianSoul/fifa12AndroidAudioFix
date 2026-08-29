@@ -18,6 +18,8 @@ I prefer to use [Virtual Master](https://play.google.com/store/apps/details?id=c
 
 This patch is made to play this game in Virtual Master or other Android virtual machine. This patch is possible thanks to a *.so* patched version I found on the internet. Nevertheless, this version causes bugs when you change the visual settings, and the options are not correctly changed. Comparing the original and the patched version, **I used ChatGPT as my assistant**. The final patch was tested several times in my phone and works correctly. To more information, you can see the conversation (written in Spanish, sorry) in the *ai* folder.
 
+**I tested and played in Virtual Master (*Android 5.1.1 arm64/arm32*) in a arm64-v8a device with Android 16, and it works correctly.**
+
 ## Execute the patch
 
 1. You need...
