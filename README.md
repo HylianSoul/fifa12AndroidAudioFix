@@ -45,8 +45,8 @@ The code checks the SHA-256 of the *.so* file to ensure the patch can be applied
 ```python
 if original_hash != EXPECTED_SHA256:
     print()
-    print("ERROR: la libFIFA12.so no coincide con la versión esperada.")
-    print("No se ha aplicado ningún parche.")
+    print("ERROR: libFIFA12.so has not the expected SHA-256 checksum.")
+    print("Any patch is applied.")
     sys.exit(1)
 ```
 
