@@ -1,0 +1,1703 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ChatGPT</title>
+  <style>
+    :root {
+      --bg: #FFF; --fg: #000; --user-bg: #f4f4f4;
+      --code-bg: #ececec; --table-bdr: rgba(0,0,0,0.15);
+      --bq-bdr: rgba(0,0,0,0.2); --cb-bg: #2a2a2a; --cb-bdr: #000;
+      --nav-dash: rgba(0,0,0,0.3); --nav-dash-hov: rgba(0,0,0,0.5); --nav-dash-act: #000;
+      --nav-popup-bg: rgba(255,255,255,0.96); --nav-item-fg: #111;
+      --nav-item-hov: rgba(0,0,0,0.06); --nav-item-act: rgba(0,0,0,0.08);
+      --nav-shadow: 0 8px 30px rgba(0,0,0,0.18); --nav-border: rgba(0,0,0,0.08);
+    }
+    * { box-sizing: border-box; }
+    body {
+      font-family: ui-sans-serif,-apple-system,system-ui,"Segoe UI",Helvetica,Arial,sans-serif;
+      font-size: 16px; background: var(--bg); color: var(--fg);
+      padding: 20px; margin: 0 auto; line-height: 1.6;
+    }
+    .header {
+      display: flex; align-items: center; gap: 14px;
+      max-width: 900px; margin: 0 auto 28px;
+      padding: 4px 20px 22px; border-bottom: 1px solid var(--table-bdr);
+    }
+    .header-icon {
+      flex-shrink: 0; width: 34px; height: 34px; border-radius: 10px;
+      background: #10a37f; display: flex; align-items: center; justify-content: center;
+    }
+    .header-icon svg { width: 19px; height: 19px; }
+    .title { font-size: 18px; font-weight: 600; margin: 0; line-height: 1.3; }
+    .timestamp { font-size: 13px; margin-top: 3px; opacity: 0.55; }
+    .conversation { max-width: 900px; margin: 0 auto; padding: 20px; }
+    .message { margin-bottom: 20px; padding: 10px 20px; border-radius: 18px; width: fit-content; clear: both; overflow: hidden; }
+    .user-message { float: right; max-width: 80%; background: var(--user-bg); }
+    .assistant-message { float: left; max-width: 95%; }
+    .content { user-select: text; overflow-wrap: break-word; }
+    .content img { max-height: 220px; width: auto; border-radius: 8px; margin: 8px 0; display: block; cursor: zoom-in; transition: opacity 0.15s; }
+    .content img:hover { opacity: 0.85; }
+    #lb { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.88); z-index: 9999; justify-content: center; align-items: center; cursor: zoom-out; }
+    #lb.open { display: flex; }
+    #lb img { max-width: 90vw; max-height: 90vh; border-radius: 10px; object-fit: contain; cursor: default; box-shadow: 0 8px 40px rgba(0,0,0,0.6); }
+    .content h1 { font-size: 24px; margin: .67em 0; }
+    .content h2 { font-size: 20px; margin: .75em 0; }
+    .content h3 { font-size: 18px; margin: .83em 0; }
+    .content h4 { font-size: 16px; margin: 1.12em 0; }
+    .content h5 { font-size: 14px; margin: 1.5em 0; }
+    .content h6 { font-size: 12px; margin: 1.67em 0; }
+    table { border-collapse: collapse; font-size: 14px; width: 100%; margin: 16px 0; }
+    th, td { padding: 8px 16px; text-align: left; vertical-align: top; font-size: 14px; }
+    th { font-weight: 600; border-bottom: 2px solid var(--table-bdr); }
+    td { border-bottom: 1px solid var(--table-bdr); }
+    tr:last-child td { border-bottom: none; }
+    hr { border: none; border-top: 1px solid var(--table-bdr); margin: 28px 0; clear: both; }
+    blockquote { border-left: 4px solid var(--bq-bdr); margin: 8px 0; padding: 8px 0 8px 24px; font-weight: 500; }
+    li { margin: 10px 0; }
+    code { background: var(--code-bg); color: var(--fg); padding: 2px 5px; border-radius: 4px; font-size: .9em; }
+    .code-wrapper { border-radius: 8px; overflow: hidden; margin: 12px 0; }
+    .code-header {
+      background: #1a1a1a; padding: 8px 16px;
+      display: flex; align-items: center; gap: 8px;
+      border-bottom: 1px solid rgba(255,255,255,0.08);
+    }
+    .code-header::before {
+      content: "</>"; font-size: 11px; color: #10a37f; font-weight: 700;
+    }
+    .code-lang { font-size: 13px; font-weight: 500; color: #ccc; font-family: inherit; }
+    .code-block {
+      background: var(--cb-bg) !important; color: #fff !important;
+      padding: 16px !important; margin: 0 !important; border-radius: 0 !important;
+      border: none !important;
+      font-family: "SFMono-Regular",Consolas,"Liberation Mono",Menlo,monospace !important;
+      font-size: 14px !important; line-height: 1.5 !important;
+      overflow-x: auto !important; white-space: pre !important;
+    }
+    .code-block code { background: transparent; color: inherit; padding: 0; border-radius: 0; font-size: inherit; }
+    .hljs { background: transparent; color: #f8f8f2; }
+    .hljs-keyword,.hljs-selector-tag { color: #ff79c6; }
+    .hljs-string,.hljs-attr { color: #f1fa8c; }
+    .hljs-number,.hljs-literal { color: #bd93f9; }
+    .hljs-title,.hljs-function,.hljs-section { color: #50fa7b; }
+    .hljs-comment,.hljs-quote { color: #6272a4; font-style: italic; }
+    .hljs-params { color: #f8f8f2; }
+    .hljs-built_in,.hljs-type { color: #8be9fd; }
+    .hljs-variable,.hljs-template-variable { color: #ffb86c; }
+    .hljs-attribute,.hljs-tag { color: #ff79c6; }
+    .hljs-name { color: #50fa7b; }
+    .hljs-regexp,.hljs-link { color: #f1fa8c; }
+    .hljs-symbol,.hljs-bullet { color: #bd93f9; }
+    .hljs-meta { color: #6272a4; }
+    .hljs-deletion { color: #ff5555; }
+    .hljs-addition { color: #50fa7b; }
+    .hljs-emphasis { font-style: italic; }
+    .hljs-strong { font-weight: bold; }
+    .entity { text-decoration: underline; text-underline-offset: 3px; }
+    sup.cite { font-size: 10px; line-height: 1; }
+    a.cite-num { text-decoration: none; color: #10a37f; font-weight: 600; margin: 0 1px; }
+
+    del { text-decoration: line-through; opacity: 0.7; }
+    .math-block { margin: 16px 0; text-align: center; overflow-x: auto; }
+    .footnotes { font-size: 13px; padding-left: 20px; margin-top: 4px; }
+    .footnotes li { margin: 4px 0; opacity: 0.75; }
+    .fn-back { text-decoration: none; margin-left: 4px; }
+    sup a { text-decoration: none; color: #10a37f; }
+    li input[type="checkbox"] { margin-right: 5px; pointer-events: none; vertical-align: middle; }
+        @media print {
+      .message { float: none !important; max-width: 100% !important; }
+      .code-block { white-space: pre-wrap !important; }
+    }
+
+    .msg-nav {
+      position: fixed; top: 50%; right: 20px; transform: translateY(-50%);
+      max-height: calc(100vh - 40px); overflow-y: auto; overflow-x: visible;
+      display: flex; flex-direction: column; align-items: flex-end;
+      gap: 5px; z-index: 500; padding: 20px 6px;
+      cursor: pointer; user-select: none;
+      scrollbar-width: none; -ms-overflow-style: none;
+    }
+    .msg-nav::-webkit-scrollbar { display: none; }
+    .msg-nav-dash {
+      flex-shrink: 0; width: 14px; height: 2px; border-radius: 2px;
+      background: var(--nav-dash); cursor: pointer;
+      transition: background 0.15s, width 0.15s;
+    }
+    .msg-nav-dash:hover { background: var(--nav-dash-hov); }
+    .msg-nav-dash.active { background: var(--nav-dash-act); width: 18px; }
+    .msg-nav-popup {
+      position: fixed; top: 50%; right: 20px; transform: translateY(-50%);
+      max-width: 280px; max-height: 70vh; overflow-y: auto;
+      background: var(--nav-popup-bg); backdrop-filter: blur(6px);
+      border: 1px solid var(--nav-border);
+      border-radius: 22px; padding: 10px 8px;
+      display: none; flex-direction: column; z-index: 501;
+      box-shadow: var(--nav-shadow);
+      cursor: pointer; user-select: none;
+    }
+    .msg-nav-popup.open { display: flex; }
+    .msg-nav-item {
+      flex-shrink: 0;
+      color: var(--nav-item-fg); font-size: 14px; line-height: 1.4; padding: 10px 14px; border-radius: 16px;
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+      cursor: pointer; user-select: none;
+      font-family: ui-sans-serif,-apple-system,system-ui,"Segoe UI",Helvetica,Arial,sans-serif;
+    }
+    .msg-nav-item:hover { background: var(--nav-item-hov); }
+    .msg-nav-item.active { background: var(--nav-item-act); }
+    @media print {
+      .msg-nav, .msg-nav-popup { display: none !important; }
+    }
+  </style>
+  
+</head>
+<body>
+  <div class="header">
+    <div class="header-icon">
+      <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M22.28 9.82a5.99 5.99 0 0 0-.52-4.91 6.05 6.05 0 0 0-6.51-2.9A6.07 6.07 0 0 0 4.98 4.18a5.99 5.99 0 0 0-4 2.9 6.05 6.05 0 0 0 .74 7.1 5.99 5.99 0 0 0 .51 4.91 6.05 6.05 0 0 0 6.52 2.9A6.07 6.07 0 0 0 19 21.82a5.99 5.99 0 0 0 4-2.9 6.05 6.05 0 0 0-.74-7.1ZM13.55 21.4a4.48 4.48 0 0 1-2.88-1.04l.14-.08 4.8-2.77a.79.79 0 0 0 .4-.69v-6.76l2.03 1.17a.07.07 0 0 1 .04.06v5.62a4.5 4.5 0 0 1-4.53 4.49ZM4.62 17.44a4.47 4.47 0 0 1-.54-3.02l.14.08 4.8 2.77a.78.78 0 0 0 .79 0l5.86-3.38v2.34a.08.08 0 0 1-.03.07l-4.85 2.8a4.5 4.5 0 0 1-6.17-1.66ZM3.35 7.86A4.48 4.48 0 0 1 5.7 5.9v5.72a.78.78 0 0 0 .4.69l5.86 3.38-2.03 1.17a.08.08 0 0 1-.07 0L5.01 14.06a4.5 4.5 0 0 1-1.66-6.2Zm16.68 3.88-5.86-3.39L16.2 7.19a.08.08 0 0 1 .07 0l4.85 2.8a4.5 4.5 0 0 1-.68 8.11v-5.72a.79.79 0 0 0-.4-.69Zm2.02-3.04-.14-.09-4.8-2.78a.78.78 0 0 0-.79 0L9.46 9.21V6.87a.07.07 0 0 1 .03-.07l4.85-2.8a4.5 4.5 0 0 1 6.7 4.67ZM8.35 12.86l-2.03-1.17a.08.08 0 0 1-.04-.06V6.01a4.5 4.5 0 0 1 7.38-3.45l-.14.08-4.8 2.77a.79.79 0 0 0-.4.69l.03 6.76Zm1.11-2.38 2.61-1.51 2.61 1.5v3.02l-2.61 1.5-2.61-1.5Z" fill="#fff"/>
+      </svg>
+    </div>
+    <div>
+      <h1 class="title">ChatGPT</h1>
+      <div class="timestamp">29/8/2026, 3:58:52</div>
+    </div>
+  </div>
+  <div class="conversation">
+    <div class="message user-message" id="user-msg-0"><div class="content"><p class="_wdUoQG_messageCopy">Estoy parcheando el APK de FIFA 12 para Android para que que se escuche bien en un android actual (lo ejecuto usando Virtual Master). He encontrado un APK parcheado que no tiene este problema con el audio. Para arreglar el antiguo, he copiado el archivo .so del APK nuevo al original. No obstante, tengo un problema con la versión nueva. Cambiar cosas en el menú de opciones es un incordio. Es como si después de aceptar los cambios, al entrar al menú, no se cambiaran. Eso no pasaba con el .so original. ¿Cómo podría arreglar esto?</p></div></div>
+    <div class="message assistant-message"><div class="content"><div class="_wdUoQG_messageCopy _A1mksG_dilContent _pKBN-W_sportsContent"><p>Sí. Por lo que describes, <strong>yo no asumiría que el problema está en Android ni en Virtual Master</strong>. El hecho de que al sustituir la <code>.so</code> se arregle el audio pero se rompa la persistencia/lectura de opciones apunta bastante a que esa biblioteca nativa no es simplemente una "biblioteca de audio": probablemente contiene parte de la lógica del juego, incluida la gestión de configuración.</p>
+<p>En Android, una <code>.so</code> se carga como código nativo de la aplicación y puede coexistir con el código Java/smali del APK; las bibliotecas se seleccionan además según la ABI (<code>armeabi</code>, <code>armeabi-v7a</code>, etc.). <span><span><span></span></span></span>
+</p>
+<h3>Lo que probablemente está ocurriendo</h3>
+<p>Tienes aproximadamente esto:</p>
+<div class="code-wrapper"><div class="code-header"><span class="code-lang">plaintext</span></div><pre class="code-block hljs">APK original
+ ├─ código Java/smali
+ ├─ lib/armeabi/...so      ← funciona el menú, audio malo
+ └─ datos/configuración
+
+APK parcheado
+ ├─ código Java/smali
+ ├─ lib/armeabi/...so      ← audio bueno, menú/configuración raro
+ └─ datos/configuración
+</pre></div>
+<p>Al poner la <code>.so</code> del segundo APK en el primero, estás mezclando <strong>dos versiones distintas del código nativo</strong>.</p>
+<p>Si FIFA 12 guarda alguna configuración mediante Java/<code>SharedPreferences</code>, el mecanismo normal consiste en escribir pares clave/valor y posteriormente volver a leerlos. <span><span><span></span></span></span>
+ Pero un juego antiguo también puede guardar opciones directamente desde C/C++ en archivos propios, o tener código nativo que sincronice el estado de la interfaz con esos archivos.</p>
+<p>Por eso hay una pista especialmente interesante en lo que dices:</p>
+<blockquote>
+<p>con la <code>.so</code> original los cambios del menú sí se mantienen.</p>
+</blockquote>
+<p>Eso sugiere que <strong>la <code>.so</code> original y el resto del APK están diseñados para trabajar juntos</strong>, mientras que la nueva <code>.so</code> probablemente espera una versión diferente del código/configuración.</p>
+<h3>Yo haría una prueba muy concreta</h3>
+<p>No intentaría modificar todavía la <code>.so</code>. Primero averiguaría <strong>qué parte exacta de la configuración deja de funcionar</strong>.</p>
+<p>Haz una matriz sencilla:</p>
+<div class="_wdUoQG_tableFrame"><div class="_wdUoQG_tableScroller"><table><thead><tr><th>Prueba</th><th><code>.so</code> original</th><th><code>.so</code> nueva</th></tr></thead><tbody>
+<tr><td>Cambiar idioma</td><td>¿?</td><td>¿?</td></tr>
+<tr><td>Cambiar controles</td><td>¿?</td><td>¿?</td></tr>
+<tr><td>Cambiar gráficos</td><td>¿?</td><td>¿?</td></tr>
+<tr><td>Cambiar volumen</td><td>¿?</td><td>¿?</td></tr>
+<tr><td>Cambiar dificultad</td><td>¿?</td><td>¿?</td></tr>
+<tr><td>Salir completamente del juego y volver</td><td>¿?</td><td>¿?</td></tr>
+</tbody></table>
+</div></div>
+<p>Si <strong>todas</strong> las opciones vuelven a su valor anterior, sospecharía de la rutina general de guardado/carga.</p>
+<p>Si solamente fallan determinadas opciones, es mucho más interesante: probablemente la <code>.so</code> nueva utiliza <strong>claves/estructuras/offsets diferentes</strong> para esas opciones.</p>
+<h3>La prueba que más información te puede dar</h3>
+<p>Compara los archivos que crea/modifica cada APK.</p>
+<p>Con la versión original:</p>
+<ol>
+<li>Instala/ejecuta el APK.</li>
+<li>Cambia una única opción.</li>
+<li>Sal del juego completamente.</li>
+<li>Examina qué archivos aparecen o cambian.</li>
+</ol>
+<p>Después haz exactamente lo mismo con el APK que contiene la <code>.so</code> nueva.</p>
+<p>Busca especialmente cosas como:</p>
+<div class="code-wrapper"><div class="code-header"><span class="code-lang">plaintext</span></div><pre class="code-block hljs">/<span class="hljs-class"><span class="hljs-keyword">data</span>/<span class="hljs-keyword">data</span>/&lt;paquete&gt;/shared_prefs/</span>
+</pre></div>
+<p>y archivos dentro de:</p>
+<div class="code-wrapper"><div class="code-header"><span class="code-lang">plaintext</span></div><pre class="code-block hljs">/<span class="hljs-class"><span class="hljs-keyword">data</span>/<span class="hljs-keyword">data</span>/&lt;paquete&gt;/files/</span>
+</pre></div>
+<p>o el almacenamiento externo que utilice el juego.</p>
+<p><code>SharedPreferences</code>, por ejemplo, se almacenan en archivos y permiten comprobar qué claves y valores está escribiendo una aplicación. <span><span><span></span></span></span>
+</p>
+<p>Si tienes acceso root dentro de Virtual Master, esto es bastante fácil de investigar. Si no, puedes hacerlo mediante ADB dependiendo de cómo esté configurado el entorno virtual.</p>
+<h3>También comprobaría algo importante: ABI</h3>
+<p>FIFA 12 es extremadamente antiguo; la versión que he encontrado está catalogada como <code>armeabi</code>/<code>armeabi-v7a</code> y con Android objetivo 2.3. <span><span><span></span></span></span>
+</p>
+<p>Comprueba que <strong>la <code>.so</code> que has sustituido pertenece exactamente a la misma ABI</strong> que la original.</p>
+<p>Por ejemplo:</p>
+<div class="code-wrapper"><div class="code-header"><span class="code-lang">plaintext</span></div><pre class="code-block hljs">lib<span class="hljs-regexp">/armeabi/</span>libXXX.so
+</pre></div>
+<p>no es necesariamente intercambiable con:</p>
+<div class="code-wrapper"><div class="code-header"><span class="code-lang">plaintext</span></div><pre class="code-block hljs">lib/armeabi-v7a/libXXX.so
+</pre></div>
+<p>aunque ambas sean ARM.</p>
+<p>Y si el APK tiene varias copias:</p>
+<div class="code-wrapper"><div class="code-header"><span class="code-lang">plaintext</span></div><pre class="code-block hljs">lib<span class="hljs-regexp">/armeabi/</span>
+lib<span class="hljs-regexp">/armeabi-v7a/</span>
+lib<span class="hljs-regexp">/arm64-v8a/</span>
+</pre></div>
+<p>no basta con sustituir una al azar. Android selecciona la biblioteca nativa correspondiente a la arquitectura disponible. <span><span><span></span></span></span>
+</p>
+<h3>Mi hipótesis principal</h3>
+<p>Hay una posibilidad bastante buena de que <strong>no necesites conservar la <code>.so</code> completa del APK parcheado</strong>.</p>
+<p>Si el parcheador original modificó la <code>.so</code> para solucionar exclusivamente el problema de audio, quizá puedas hacer algo mucho más limpio:</p>
+<div class="code-wrapper"><div class="code-header"><span class="code-lang">plaintext</span></div><pre class="code-block hljs">        .so <span class="hljs-keyword">original
+</span>             │
+       ┌─────┴─────┐
+       │            │
+   lógica FIFA   có<span class="hljs-keyword">digo </span>audio
+       │            │
+       │       parchear sólo esto
+       │            │
+       └─────┬──────┘
+             ↓
+       nueva .so hí<span class="hljs-keyword">brida
+</span></pre></div>
+<p>Es decir, <strong>portar únicamente el cambio relacionado con el audio de la <code>.so</code> parcheada a la <code>.so</code> original</strong>, en lugar de sustituir la biblioteca entera.</p>
+<p>Para eso sí necesitaríamos mirar las dos <code>.so</code>.</p>
+<p>Si quieres hacerlo, pásame <strong>los nombres/tamaños de las <code>.so</code> originales y parcheadas</strong> (por ejemplo <code>libxxx.so</code>, tamaño en bytes y ruta dentro del APK) y, si puedes, el resultado de:</p>
+<div class="code-wrapper"><div class="code-header"><span class="code-lang">plaintext</span></div><pre class="code-block hljs"><span class="hljs-built_in">sha256sum</span> lib_original.so
+<span class="hljs-built_in">sha256sum</span> lib_parcheada.so
+</pre></div>
+<p>También me serviría saber <strong>qué opciones concretas del menú no se guardan</strong>. Con eso podemos determinar si merece la pena comparar las dos bibliotecas con Ghidra/IDA/Binary Ninja, buscar las funciones de configuración y localizar qué cambió el parche de audio.</p>
+
+</div></div></div>
+    <div class="message user-message" id="user-msg-1"><div class="content"><p class="_wdUoQG_messageCopy">El cambio de controles y el zoom y la altura de la cámara no funcionan bien.</p></div></div>
+    <div class="message assistant-message"><div class="content"><div class="_wdUoQG_messageCopy _A1mksG_dilContent _pKBN-W_sportsContent"><p>Eso es una pista bastante buena. <strong>Controles + zoom + altura de cámara</strong> tienen algo en común: son ajustes que probablemente se guardan y después se leen desde una estructura de configuración del juego. Si con la <code>.so</code> original funcionan y con la nueva no, yo sospecharía de una <strong>incompatibilidad entre la <code>.so</code> parcheada y el resto del APK</strong>, más que de un problema de permisos para guardar.</p>
+<p>En particular, haría estas pruebas:</p>
+<ol>
+<li><strong>Cambia solo el zoom</strong>, sal del menú y vuelve a entrar.</li>
+<li>Haz lo mismo con <strong>altura de cámara</strong>.</li>
+<li>Cambia solo <strong>un control</strong>.</li>
+<li>Reinicia completamente FIFA 12 y comprueba si se conserva.</li>
+<li>Comprueba si el valor <strong>se ve cambiado mientras estás en el menú</strong>, pero al volver a entrar aparece el antiguo, o si ni siquiera cambia durante la partida.</li>
+</ol>
+<p>La distinción es importante:</p>
+<ul>
+<li><strong>El valor cambia durante el partido pero el menú muestra el antiguo</strong> → probablemente el problema está en la lectura/escritura de la configuración de la interfaz.</li>
+<li><strong>El valor no cambia ni siquiera durante el partido</strong> → probablemente la <code>.so</code> nueva está ignorando esos parámetros o utiliza otra estructura/formato.</li>
+<li><strong>Funciona hasta cerrar el juego y después se pierde</strong> → miraría específicamente la rutina de guardado.</li>
+<li><strong>El cambio se guarda pero se interpreta mal</strong> (por ejemplo, zoom cambia pero con valores extraños) → sospecharía de tipos/offsets/estructura incompatibles.</li>
+</ul>
+<h3>Lo más interesante: comparar las dos <code>.so</code></h3>
+<p>Si tienes ambas APK, podemos investigar esto de forma bastante sistemática sin tocar a ciegas.</p>
+<p>Extrae de <strong>ambos APK</strong>:</p>
+<div class="code-wrapper"><div class="code-header"><span class="code-lang">plaintext</span></div><pre class="code-block hljs"><span class="hljs-class"><span class="hljs-keyword">lib</span>/</span>
+  armeabi/
+     *.so
+</pre></div>
+<p>y dime cuáles son las <code>.so</code> que difieren. Si hay una biblioteca que sea, por ejemplo:</p>
+<div class="code-wrapper"><div class="code-header"><span class="code-lang">plaintext</span></div><pre class="code-block hljs">lib<span class="hljs-regexp">/armeabi/</span>libFIFA.so
+</pre></div>
+<p>en ambos APK, podemos comparar:</p>
+<div class="code-wrapper"><div class="code-header"><span class="code-lang">plaintext</span></div><pre class="code-block hljs">sha256sum libFIF<span class="hljs-built_in">A_original</span>.so
+sha256sum libFIF<span class="hljs-built_in">A_parcheada</span>.so
+</pre></div>
+<p>y sus tamaños.</p>
+<p>Después podemos buscar en la <code>.so</code> parcheada <strong>qué modificaciones corresponden realmente al audio</strong>. Si el parche de audio solo modificó unas pocas funciones/instrucciones, podemos intentar trasladar esas modificaciones a la <code>.so</code> original. Eso sería mucho mejor que reemplazar la biblioteca completa, porque conservarías la lógica de configuración que funciona en tu APK original.</p>
+<p><strong>No hace falta que desmontes nada todavía.</strong> Si me pasas:</p>
+<ul>
+<li>nombre de la <code>.so</code> que sustituiste,</li>
+<li>tamaño de la original,</li>
+<li>tamaño de la parcheada,</li>
+<li><code>sha256sum</code> de ambas,</li>
+<li>y, si puedes, las rutas completas dentro de ambos APK,</li>
+</ul>
+<p>te puedo decir cuál sería el siguiente paso y cómo comparar las dos.</p>
+</div></div></div>
+    <div class="message user-message" id="user-msg-2"><div class="content"><p class="_wdUoQG_messageCopy">El SHA-256 del .so original es e37b4dd96a117ba3d745c9ba3dabfc5fd51d6a21436c5473ee4db82d65ea98c9.
+
+El .so del APK parcheado es bbd8b399ee41f71a3a69b2fccc98314988953e75e3da396d6f9eca8b42d52dc0.
+
+Ambos pesan 11.837.676 bytes y están en la ruta lib/armeabi/libFIFA12.so.</p></div></div>
+    <div class="message assistant-message"><div class="content"><div class="_wdUoQG_messageCopy _A1mksG_dilContent _pKBN-W_sportsContent"><p>Perfecto. Esos datos son <strong>muy interesantes</strong>:</p>
+<ul>
+<li>Misma ruta: <code>lib/armeabi/libFIFA12.so</code></li>
+<li>Mismo tamaño exacto: <strong>11.837.676 bytes</strong></li>
+<li>SHA-256 diferente:
+<ul>
+<li>Original: <code>e37b4d...ea98c9</code></li>
+<li>Parcheado: <code>bbd8b3...52dc0</code></li>
+</ul>
+</li>
+</ul>
+<p>Eso hace bastante probable que <strong>no sea una biblioteca completamente distinta</strong>, sino que el APK parcheado contiene una versión modificada de la misma <code>libFIFA12.so</code>. El tamaño idéntico es especialmente útil: podría tratarse de modificaciones <em>in-place</em> de determinadas instrucciones o datos.</p>
+<p>La buena noticia es que podemos intentar localizar <strong>exactamente qué bytes cambiaron</strong> y averiguar si los cambios están relacionados únicamente con el audio.</p>
+<h2>Siguiente paso: comparar byte a byte</h2>
+<p>Si tienes las dos <code>.so</code> en un PC, ejecuta:</p>
+<div class="code-wrapper"><div class="code-header"><span class="code-lang">plaintext</span></div><pre class="code-block hljs">cmp -<span class="hljs-keyword">l</span> libFIFA12_original.<span class="hljs-keyword">so</span> libFIFA12_parcheado.<span class="hljs-keyword">so</span> | head -50
+</pre></div>
+<p>Eso nos dará las primeras posiciones donde difieren.</p>
+<p>Mejor todavía:</p>
+<div class="code-wrapper"><div class="code-header"><span class="code-lang">plaintext</span></div><pre class="code-block hljs">cmp -l libFIFA12_original<span class="hljs-selector-class">.so</span> libFIFA12_parcheado<span class="hljs-selector-class">.so</span> &gt; diferencias<span class="hljs-selector-class">.txt</span>
+</pre></div>
+<p>y:</p>
+<div class="code-wrapper"><div class="code-header"><span class="code-lang">plaintext</span></div><pre class="code-block hljs"><span class="hljs-built_in">wc</span> -l diferencias.txt
+</pre></div>
+<p>Así sabremos <strong>cuántos bytes son diferentes</strong>.</p>
+<p>También puedes obtener los rangos de diferencias de una forma más cómoda con:</p>
+<div class="code-wrapper"><div class="code-header"><span class="code-lang">plaintext</span></div><pre class="code-block hljs">radiff2 -C libFIFA12_original.<span class="hljs-keyword">so</span> libFIFA12_parcheado.<span class="hljs-keyword">so</span>
+</pre></div>
+<p>si tienes instalado <strong>radare2</strong>.</p>
+<h3>Si no tienes radare2</h3>
+<p>Puedes usar simplemente Python. Guarda esto como <code>compare.py</code>:</p>
+<div class="code-wrapper"><div class="code-header"><span class="code-lang">plaintext</span></div><pre class="code-block hljs"><span class="hljs-keyword">from</span> pathlib <span class="hljs-keyword">import</span> Path
+
+a = Path(<span class="hljs-string">"libFIFA12_original.so"</span>).read_bytes()
+b = Path(<span class="hljs-string">"libFIFA12_parcheado.so"</span>).read_bytes()
+
+<span class="hljs-keyword">assert</span> <span class="hljs-built_in">len</span>(a) == <span class="hljs-built_in">len</span>(b)
+
+diffs = []
+start = <span class="hljs-literal">None</span>
+
+<span class="hljs-keyword">for</span> i, (x, y) <span class="hljs-keyword">in</span> <span class="hljs-built_in">enumerate</span>(<span class="hljs-built_in">zip</span>(a, b)):
+    <span class="hljs-keyword">if</span> x != y:
+        <span class="hljs-keyword">if</span> start <span class="hljs-keyword">is</span> <span class="hljs-literal">None</span>:
+            start = i
+    <span class="hljs-keyword">elif</span> start <span class="hljs-keyword">is</span> <span class="hljs-keyword">not</span> <span class="hljs-literal">None</span>:
+        diffs.append((start, i - <span class="hljs-number">1</span>))
+        start = <span class="hljs-literal">None</span>
+
+<span class="hljs-keyword">if</span> start <span class="hljs-keyword">is</span> <span class="hljs-keyword">not</span> <span class="hljs-literal">None</span>:
+    diffs.append((start, <span class="hljs-built_in">len</span>(a) - <span class="hljs-number">1</span>))
+
+<span class="hljs-built_in">print</span>(<span class="hljs-string">f"Tamaño: <span class="hljs-subst">{<span class="hljs-built_in">len</span>(a):,}</span> bytes"</span>)
+<span class="hljs-built_in">print</span>(<span class="hljs-string">f"Rangos diferentes: <span class="hljs-subst">{<span class="hljs-built_in">len</span>(diffs)}</span>"</span>)
+<span class="hljs-built_in">print</span>(<span class="hljs-string">f"Bytes diferentes: <span class="hljs-subst">{<span class="hljs-built_in">sum</span>(end-start+<span class="hljs-number">1</span> <span class="hljs-keyword">for</span> start,end <span class="hljs-keyword">in</span> diffs):,}</span>"</span>)
+<span class="hljs-built_in">print</span>()
+
+<span class="hljs-keyword">for</span> start, end <span class="hljs-keyword">in</span> diffs:
+    <span class="hljs-built_in">print</span>(<span class="hljs-string">f"0x<span class="hljs-subst">{start:08X}</span> - 0x<span class="hljs-subst">{end:08X}</span>  (<span class="hljs-subst">{end-start+<span class="hljs-number">1</span>}</span> bytes)"</span>)
+</pre></div>
+<p>Ejecutándolo:</p>
+<div class="code-wrapper"><div class="code-header"><span class="code-lang">plaintext</span></div><pre class="code-block hljs"><span class="hljs-keyword">python</span> compare.<span class="hljs-keyword">py</span>
+</pre></div>
+<p>podríamos obtener algo del estilo:</p>
+<div class="code-wrapper"><div class="code-header"><span class="code-lang">plaintext</span></div><pre class="code-block hljs">Tamaño: <span class="hljs-number">11</span>,<span class="hljs-number">837</span>,<span class="hljs-number">676</span> <span class="hljs-keyword">bytes
+</span>Rangos <span class="hljs-keyword">diferentes: </span><span class="hljs-number">7</span>
+<span class="hljs-keyword">Bytes </span><span class="hljs-keyword">diferentes: </span><span class="hljs-number">34</span>
+
+<span class="hljs-number">0x00123450</span> - <span class="hljs-number">0x00123453</span> (<span class="hljs-number">4</span> <span class="hljs-keyword">bytes)
+</span><span class="hljs-number">0x00287110</span> - <span class="hljs-number">0x00287112</span> (<span class="hljs-number">3</span> <span class="hljs-keyword">bytes)
+</span>...
+</pre></div>
+<p><strong>Eso sería tremendamente útil.</strong></p>
+<h2>Y aquí está la parte clave</h2>
+<p>Si descubrimos algo como:</p>
+<div class="code-wrapper"><div class="code-header"><span class="code-lang">plaintext</span></div><pre class="code-block hljs"><span class="hljs-symbol">12 </span>bytes modificados en una función
+<span class="hljs-symbol">8 </span>bytes modificados en otra
+</pre></div>
+<p>podemos desensamblar esas zonas y determinar qué hizo el parche.</p>
+<p>Por ejemplo, si encontramos que el parche solo cambia llamadas a:</p>
+<div class="code-wrapper"><div class="code-header"><span class="code-lang">plaintext</span></div><pre class="code-block hljs"><span class="hljs-function"><span class="hljs-title">Audio_Init</span><span class="hljs-params">()</span></span>
+<span class="hljs-function"><span class="hljs-title">Audio_SetFormat</span><span class="hljs-params">()</span></span>
+<span class="hljs-function"><span class="hljs-title">Audio_CreateBuffer</span><span class="hljs-params">()</span></span>
+</pre></div>
+<p>entonces probablemente podamos aplicar <strong>solo esas modificaciones</strong> a la <code>.so</code> original.</p>
+<p>En cambio, si aparecen cambios alrededor de código que maneja:</p>
+<div class="code-wrapper"><div class="code-header"><span class="code-lang">plaintext</span></div><pre class="code-block hljs">camera
+controls
+settings
+<span class="hljs-built_in">config</span>
+<span class="hljs-keyword">preferences
+</span></pre></div>
+<p>eso explicaría directamente tu problema.</p>
+<h3>Hay otra comprobación que haría</h3>
+<p>Como ambas bibliotecas tienen exactamente <strong>11.837.676 bytes</strong>, quiero saber si son realmente el mismo binario con pequeños parches o si el parcheador ha sustituido grandes regiones conservando artificialmente el tamaño.</p>
+<p>Por eso, <strong>no sustituyas todavía más archivos ni modifiques la <code>.so</code></strong>.</p>
+<p>Pásame el resultado de:</p>
+<div class="code-wrapper"><div class="code-header"><span class="code-lang">plaintext</span></div><pre class="code-block hljs">cmp -<span class="hljs-keyword">l</span> libFIFA12_original.<span class="hljs-keyword">so</span> libFIFA12_parcheado.<span class="hljs-keyword">so</span> | head -50
+</pre></div>
+<p>y, preferiblemente, el resultado de:</p>
+<div class="code-wrapper"><div class="code-header"><span class="code-lang">plaintext</span></div><pre class="code-block hljs"><span class="hljs-keyword">python</span> compare.<span class="hljs-keyword">py</span>
+</pre></div>
+<p>Con esos datos podemos pasar de <em>“probablemente la <code>.so</code> es incompatible”</em> a localizar <strong>qué parte concreta cambió</strong>. Si los cambios son pocos, hay bastantes posibilidades de construir una <code>libFIFA12.so</code> que conserve el funcionamiento de los controles/cámara del original y, a la vez, tenga el arreglo de audio del parcheado.</p>
+</div></div></div>
+    <div class="message user-message" id="user-msg-3"><div class="content"><p class="_wdUoQG_messageCopy">Acabo de ejecutar el script y me sale esto:
+
+Tamaño: 11,837,676 bytes
+Rangos diferentes: 1
+Bytes diferentes: 8
+
+0x0065992C - 0x00659933  (8 bytes)</p></div></div>
+    <div class="message assistant-message"><div class="content"><div class="_wdUoQG_messageCopy _A1mksG_dilContent _pKBN-W_sportsContent"><p>¡Eso es <strong>una pista excelente</strong>! Si las dos <code>libFIFA12.so</code> tienen exactamente el mismo tamaño y <strong>solo difieren 8 bytes</strong>, entonces el APK parcheado no es una versión sustancialmente diferente: alguien modificó únicamente una pequeña parte del binario.</p>
+<p>La diferencia está exactamente aquí:</p>
+<div class="code-wrapper"><div class="code-header"><span class="code-lang">plaintext</span></div><pre class="code-block hljs"><span class="hljs-attribute">0x0065992C</span> – <span class="hljs-number">0</span>x00659933
+</pre></div>
+<p>Es decir, solo <strong>8 bytes</strong>.</p>
+<p>Eso hace muy plausible que podamos recuperar el funcionamiento de los controles/cámara <strong>sin perder el parche de audio</strong>, porque quizá esos 8 bytes sean precisamente el parche de audio.</p>
+<h2>Ahora necesitamos ver esos 8 bytes</h2>
+<p>Ejecuta esto para cada archivo:</p>
+<div class="code-wrapper"><div class="code-header"><span class="code-lang">plaintext</span></div><pre class="code-block hljs"><span class="hljs-attribute">xxd</span> -s <span class="hljs-number">0</span>x659910 -l <span class="hljs-number">64</span> libFIFA12_original.so
+</pre></div>
+<p>y:</p>
+<div class="code-wrapper"><div class="code-header"><span class="code-lang">plaintext</span></div><pre class="code-block hljs"><span class="hljs-attribute">xxd</span> -s <span class="hljs-number">0</span>x659910 -l <span class="hljs-number">64</span> libFIFA12_parcheado.so
+</pre></div>
+<p>El resultado será algo parecido a:</p>
+<div class="code-wrapper"><div class="code-header"><span class="code-lang">plaintext</span></div><pre class="code-block hljs"><span class="hljs-attribute">00659910</span>: <span class="hljs-number">12</span> <span class="hljs-number">34</span> <span class="hljs-number">56</span> <span class="hljs-number">78</span> <span class="hljs-number">90</span> ab cd ef ...
+<span class="hljs-attribute">00659920</span>: ...
+<span class="hljs-attribute">0065992c</span>: aa bb cc dd ee ff <span class="hljs-number">11</span> <span class="hljs-number">22</span>
+</pre></div>
+<p>Necesito especialmente la línea que contiene <code>0065992c</code>.</p>
+<p>Si no tienes <code>xxd</code>, puedes usar Python:</p>
+<div class="code-wrapper"><div class="code-header"><span class="code-lang">plaintext</span></div><pre class="code-block hljs"><span class="hljs-keyword">from</span> pathlib <span class="hljs-keyword">import</span> Path
+
+<span class="hljs-keyword">for</span> filename <span class="hljs-keyword">in</span> [<span class="hljs-string">"libFIFA12_original.so"</span>, <span class="hljs-string">"libFIFA12_parcheado.so"</span>]:
+    data = Path(filename).read_bytes()
+    <span class="hljs-built_in">print</span>(filename)
+    <span class="hljs-keyword">for</span> i <span class="hljs-keyword">in</span> <span class="hljs-built_in">range</span>(<span class="hljs-number">0x659910</span>, <span class="hljs-number">0x659950</span>, <span class="hljs-number">16</span>):
+        <span class="hljs-built_in">print</span>(<span class="hljs-string">f"<span class="hljs-subst">{i:08x}</span>: <span class="hljs-subst">{data[i:i+<span class="hljs-number">16</span>].<span class="hljs-built_in">hex</span>(<span class="hljs-string">' '</span>)}</span>"</span>)
+    <span class="hljs-built_in">print</span>()
+</pre></div>
+<h2>Pero hay algo todavía más interesante</h2>
+<p>Podemos mirar esos bytes como <strong>instrucciones ARM</strong>. Como están en <code>lib/armeabi/</code>, es muy probable que el código sea ARM de 32 bits.</p>
+<p>Instala, si puedes, <code>binutils-arm-none-eabi</code> o utiliza <code>objdump</code> y prueba:</p>
+<div class="code-wrapper"><div class="code-header"><span class="code-lang">plaintext</span></div><pre class="code-block hljs">arm-none-eabi-objdump -D -<span class="hljs-keyword">b </span><span class="hljs-keyword">binary </span>-m arm libFIFA12_original.so \
+  --start-<span class="hljs-keyword">address=0x6598f0 </span>--stop-<span class="hljs-keyword">address=0x659970
+</span></pre></div>
+<p>y lo mismo para la parcheada.</p>
+<p>Sin embargo, <strong>no lo hagas todavía si no tienes claro cómo instalarlo</strong>. Con los 64 bytes alrededor de la modificación ya podemos empezar.</p>
+<h3>Y una precaución importante</h3>
+<p><code>0x0065992C</code> es un <strong>offset dentro del archivo</strong>, no necesariamente la dirección que verías en Ghidra/IDA. Al tratarse de un ELF, hay que tener en cuenta los segmentos y la dirección virtual (<code>p_vaddr</code>). Por eso no conviene modificar directamente ese offset basándonos únicamente en su número.</p>
+<p>Primero quiero ver los bytes.</p>
+<p><strong>Pásame el resultado de los dos <code>xxd</code></strong> y podremos comprobar si esos 8 bytes tienen pinta de:</p>
+<ul>
+<li>una instrucción ARM modificada;</li>
+<li>un salto (<code>B</code>, <code>BL</code>, etc.);</li>
+<li>una dirección/puntero;</li>
+<li>un valor numérico relacionado con audio;</li>
+<li>o datos.</li>
+</ul>
+<p>Si resulta ser, por ejemplo, un <code>BL</code> hacia una rutina de audio, podríamos identificar exactamente qué hizo el parche y reproducir <strong>solo esos 8 bytes en la biblioteca original</strong>, manteniendo intacto el resto de su lógica de controles y cámara.</p>
+</div></div></div>
+    <div class="message user-message" id="user-msg-4"><div class="content"><p class="_wdUoQG_messageCopy">xxd -s 0x659910 -l 64 libFIFA12_original.so
+00659910: 0000 a0e3 0110 8fe0 abf0 e7eb 5010 9fe5  ............P...
+00659920: 0110 8fe0 09f3 e7eb 0000 50e3 0130 a013  ..........P..0..
+00659930: 0330 c815 0530 94e7 0424 9de5 0030 93e5  .0...0...$...0..
+00659940: 0300 52e1 0200 001a 08d0 8de2 01db 8de2  ..R.............
+hylian@debian:~/Descargas/FIFA 12 android/3-laboratorio$ xxd -s 0x659910 -l 64 libFIFA12_parcheado.so
+00659910: 0000 a0e3 0110 8fe0 abf0 e7eb 5010 9fe5  ............P...
+00659920: 0110 8fe0 09f3 e7eb 0000 50e3 00f0 20e3  ..........P... .
+00659930: 00f0 20e3 0530 94e7 0424 9de5 0030 93e5  .. ..0...$...0..
+00659940: 0300 52e1 0200 001a 08d0 8de2 01db 8de2  ..R.............</p></div></div>
+    <div class="message assistant-message"><div class="content"><div class="_wdUoQG_messageCopy _A1mksG_dilContent _pKBN-W_sportsContent"><p>Esto aclara muchísimo el asunto. De hecho, <strong>hemos encontrado exactamente qué hizo el APK parcheado</strong>.</p>
+<p>Las dos diferencias son:</p>
+<div class="code-wrapper"><div class="code-header"><span class="code-lang">plaintext</span></div><pre class="code-block hljs"><span class="hljs-attribute">Original</span>:
+<span class="hljs-attribute">00659928</span>: <span class="hljs-number">01</span> <span class="hljs-number">30</span> a0 <span class="hljs-number">13</span>
+<span class="hljs-attribute">0065992C</span>: <span class="hljs-number">03</span> <span class="hljs-number">30</span> c8 <span class="hljs-number">15</span>
+
+<span class="hljs-attribute">Parcheado</span>:
+<span class="hljs-attribute">00659928</span>: <span class="hljs-number">00</span> f0 <span class="hljs-number">20</span> e3
+<span class="hljs-attribute">0065992C</span>: <span class="hljs-number">00</span> f0 <span class="hljs-number">20</span> e3
+</pre></div>
+<p>En ARM de 32 bits, <code>00 f0 20 e3</code> es:</p>
+<div class="code-wrapper"><div class="code-header"><span class="code-lang">plaintext</span></div><pre class="code-block hljs"><span class="hljs-keyword">NOP</span>
+</pre></div>
+<p>Así que el parcheado ha convertido <strong>dos instrucciones consecutivas en NOP</strong>. Es decir, ha desactivado deliberadamente dos operaciones del código original.</p>
+<h3>Lo importante</h3>
+<p>El parche <strong>no ha añadido código de audio</strong> ni ha reemplazado una función entera. Ha hecho esto:</p>
+<div class="code-wrapper"><div class="code-header"><span class="code-lang">plaintext</span></div><pre class="code-block hljs"><span class="hljs-keyword">Original:
+</span>
+[<span class="hljs-keyword">instrucción </span>A]
+[<span class="hljs-keyword">instrucción </span><span class="hljs-keyword">B]
+</span>
+        ↓ parche
+
+<span class="hljs-keyword">NOP
+</span><span class="hljs-keyword">NOP
+</span></pre></div>
+<p>Y eso encaja perfectamente con lo que estamos viendo: el parche de audio probablemente consiste precisamente en <strong>desactivar dos instrucciones que causaban el problema de audio en Android moderno</strong>.</p>
+<p>Por tanto, tu situación es bastante clara:</p>
+<div class="code-wrapper"><div class="code-header"><span class="code-lang">plaintext</span></div><pre class="code-block hljs">libFIFA12<span class="hljs-selector-class">.so</span> original
+        │
+        ├── <span class="hljs-selector-tag">audio</span> ❌
+        └── controles/cámara ✅
+
+libFIFA12<span class="hljs-selector-class">.so</span> parcheada
+        │
+        ├── <span class="hljs-selector-tag">audio</span> ✅
+        └── controles/cámara ❌
+</pre></div>
+<p>Pero como <strong>solo se han modificado 8 bytes</strong>, podemos hacer una prueba extremadamente sencilla.</p>
+<h2>Prueba: averiguar cuál de las dos instrucciones rompe los ajustes</h2>
+<p>Las dos instrucciones originales son:</p>
+<div class="code-wrapper"><div class="code-header"><span class="code-lang">plaintext</span></div><pre class="code-block hljs"><span class="hljs-attribute">0x659928</span>: <span class="hljs-number">01</span> <span class="hljs-number">30</span> a0 <span class="hljs-number">13</span>
+<span class="hljs-attribute">0x65992C</span>: <span class="hljs-number">03</span> <span class="hljs-number">30</span> c8 <span class="hljs-number">15</span>
+</pre></div>
+<p>Y el parche las convierte a:</p>
+<div class="code-wrapper"><div class="code-header"><span class="code-lang">plaintext</span></div><pre class="code-block hljs"><span class="hljs-attribute">0x659928</span>: <span class="hljs-number">00</span> f0 <span class="hljs-number">20</span> e3
+<span class="hljs-attribute">0x65992C</span>: <span class="hljs-number">00</span> f0 <span class="hljs-number">20</span> e3
+</pre></div>
+<p>En lugar de sustituir las dos, podemos crear tres variantes:</p>
+<h3>Variante A</h3>
+<p>Solo desactivar la primera:</p>
+<div class="code-wrapper"><div class="code-header"><span class="code-lang">plaintext</span></div><pre class="code-block hljs"><span class="hljs-number">0x659928</span> → <span class="hljs-keyword">NOP
+</span><span class="hljs-number">0x65992C</span> → <span class="hljs-keyword">original
+</span></pre></div>
+<h3>Variante B</h3>
+<p>Solo desactivar la segunda:</p>
+<div class="code-wrapper"><div class="code-header"><span class="code-lang">plaintext</span></div><pre class="code-block hljs"><span class="hljs-number">0x659928</span> → <span class="hljs-keyword">original
+</span><span class="hljs-number">0x65992C</span> → <span class="hljs-keyword">NOP
+</span></pre></div>
+<h3>Variante C</h3>
+<p>Las dos desactivadas:</p>
+<div class="code-wrapper"><div class="code-header"><span class="code-lang">plaintext</span></div><pre class="code-block hljs"><span class="hljs-number">0x659928</span> → <span class="hljs-keyword">NOP</span>
+<span class="hljs-number">0x65992C</span> → <span class="hljs-keyword">NOP</span>
+</pre></div>
+<p>La C es exactamente la <code>.so</code> parcheada que ya tienes.</p>
+<p>Si <strong>A conserva el audio bueno y recupera los controles/cámara</strong>, hemos localizado la instrucción problemática.</p>
+<p>Si es B, ya sabemos que era la segunda.</p>
+<p>Si ninguna funciona correctamente, podemos analizar qué hacen las instrucciones en contexto.</p>
+<h2>No modificaría el APK todavía</h2>
+<p>Antes de tocar bytes, quiero identificar qué hacen esas dos instrucciones. Tenemos suficiente información para hacerlo.</p>
+<p>La instrucción de:</p>
+<div class="code-wrapper"><div class="code-header"><span class="code-lang">plaintext</span></div><pre class="code-block hljs"><span class="hljs-number">0</span>x65992C:
+<span class="hljs-symbol">03 </span><span class="hljs-number">30</span> c8 <span class="hljs-number">15</span>
+</pre></div>
+<p>es una instrucción ARM de acceso a memoria, mientras que la de <code>0x659928</code> es una operación de procesamiento de datos. Esto hace que <strong>no sean simples datos de configuración</strong>: son código ejecutable.</p>
+<p>Y hay una posibilidad bastante interesante: el parche de audio podría estar anulando una pequeña rutina que toca algún estado compartido con el juego. Al hacerlo, quizá indirectamente deja sin actualizar alguna estructura utilizada por los controles/cámara.</p>
+<h3>Lo siguiente que haría</h3>
+<p>Necesitamos ver <strong>unas 20–30 instrucciones alrededor de <code>0x659928</code></strong>, no solo los bytes.</p>
+<p>Como estás en Debian, probablemente puedas instalar las herramientas ARM con:</p>
+<div class="code-wrapper"><div class="code-header"><span class="code-lang">plaintext</span></div><pre class="code-block hljs">sudo apt <span class="hljs-keyword">install </span><span class="hljs-keyword">binutils-arm-linux-gnueabi
+</span></pre></div>
+<p>Después prueba:</p>
+<div class="code-wrapper"><div class="code-header"><span class="code-lang">plaintext</span></div><pre class="code-block hljs">arm-linux-gnueabi-objdump -D libFIFA12_original<span class="hljs-selector-class">.so</span> &gt; original<span class="hljs-selector-class">.asm</span>
+</pre></div>
+<p>y:</p>
+<div class="code-wrapper"><div class="code-header"><span class="code-lang">plaintext</span></div><pre class="code-block hljs">arm-linux-gnueabi-objdump -D libFIFA12_parcheado<span class="hljs-selector-class">.so</span> &gt; parcheado<span class="hljs-selector-class">.asm</span>
+</pre></div>
+<p>Pero hay un detalle importante: al ser un ELF, <strong>no quiero que asumamos que <code>0x659928</code> es la dirección virtual correcta</strong>. El offset que hemos obtenido con <code>xxd</code> es el desplazamiento dentro del archivo. Tenemos que averiguar qué dirección virtual corresponde a ese offset.</p>
+<p>Puedes obtenerlo fácilmente con:</p>
+<div class="code-wrapper"><div class="code-header"><span class="code-lang">plaintext</span></div><pre class="code-block hljs"><span class="hljs-attribute">readelf</span> -l libFIFA12_original.so
+</pre></div>
+<p>Pásame <strong>el resultado de ese comando</strong> (la parte de <code>LOAD</code> es suficiente).</p>
+<p>Con eso puedo calcular la dirección virtual exacta y decirte cómo desensamblar precisamente esa zona. Entonces podremos ver algo del estilo:</p>
+<div class="code-wrapper"><div class="code-header"><span class="code-lang">plaintext</span></div><pre class="code-block hljs"><span class="hljs-meta prompt_">...</span>
+ldr   ...
+<span class="hljs-meta prompt_">...</span>
+&lt;instrucción que el parche elimina&gt;
+&lt;instrucción que el parche elimina&gt;
+<span class="hljs-meta prompt_">...</span>
+</pre></div>
+<p>y, sobre todo, <strong>qué función es y qué está haciendo</strong>.</p>
+<p>A estas alturas yo <strong>no tocaría ninguna otra parte del APK</strong>. Es muy probable que podamos obtener una <code>libFIFA12.so</code> que sea literalmente la original con solo el cambio necesario para el audio, en vez de usar a ciegas toda la biblioteca parcheada.</p>
+</div></div></div>
+    <div class="message user-message" id="user-msg-5"><div class="content"><p class="_wdUoQG_messageCopy">He parcheado el .so con un editor de hexadecimal y lo he probado en el APK. Sustutuir la segunda instrucción por un NOP arregla el audio, pero provoca esos problemas con el menú de configuración.</p></div></div>
+    <div class="message assistant-message"><div class="content"><div class="_wdUoQG_messageCopy _A1mksG_dilContent _pKBN-W_sportsContent"><p>Eso es una confirmación muy buena: <strong>ya hemos aislado la instrucción exacta que causa el problema de audio y, a la vez, la que está relacionada con los ajustes</strong>.</p>
+<p>En concreto:</p>
+<div class="code-wrapper"><div class="code-header"><span class="code-lang">plaintext</span></div><pre class="code-block hljs"><span class="hljs-attribute">0x65992C</span>
+<span class="hljs-attribute">Original</span>: <span class="hljs-number">03</span> <span class="hljs-number">30</span> c8 <span class="hljs-number">15</span>
+<span class="hljs-attribute">Parche</span>:   <span class="hljs-number">00</span> f0 <span class="hljs-number">20</span> e3    ; NOP
+</pre></div>
+<p>Por tanto:</p>
+<ul>
+<li><code>03 30 c8 15</code> → audio problemático, pero configuración correcta.</li>
+<li><code>00 f0 20 e3</code> → audio correcto, pero controles/zoom/cámara incorrectos.</li>
+</ul>
+<p>Eso significa que <strong>no conviene seguir intentando encontrar otra instrucción que eliminar</strong>. Lo interesante ahora es averiguar qué hace <code>03 30 c8 15</code> y si podemos modificar su comportamiento de una forma más selectiva.</p>
+<h3>Lo que probablemente está pasando</h3>
+<p>La instrucción que has eliminado no tiene por qué ser "la instrucción del audio".</p>
+<p>Puede ser algo más parecido a:</p>
+<div class="code-wrapper"><div class="code-header"><span class="code-lang">plaintext</span></div><pre class="code-block hljs">                 ┌─ estado/configuració<span class="hljs-built_in">n</span>
+instrucció<span class="hljs-built_in">n</span> ─────┤
+                 └─ estado utilizado por audio
+</pre></div>
+<p>Al convertirla en <code>NOP</code>, rompes una actualización de estado que el menú necesita.</p>
+<p>Es perfectamente posible que el audio problemático sea un <strong>efecto secundario</strong> de esa instrucción.</p>
+<p>Por eso ahora merece mucho la pena desensamblar esa función.</p>
+<h3>Necesitamos ver el código alrededor</h3>
+<p>Tus bytes originales son:</p>
+<div class="code-wrapper"><div class="code-header"><span class="code-lang">plaintext</span></div><pre class="code-block hljs"><span class="hljs-attribute">00659910</span>: <span class="hljs-number">00</span> <span class="hljs-number">00</span> a0 e3
+<span class="hljs-attribute">00659914</span>: <span class="hljs-number">01</span> <span class="hljs-number">10</span> <span class="hljs-number">8</span>f e0
+<span class="hljs-attribute">00659918</span>: ab f0 e7 eb
+<span class="hljs-attribute">0065991c</span>: <span class="hljs-number">50</span> <span class="hljs-number">10</span> <span class="hljs-number">9</span>f e5
+<span class="hljs-attribute">00659920</span>: <span class="hljs-number">01</span> <span class="hljs-number">10</span> <span class="hljs-number">8</span>f e0
+<span class="hljs-attribute">00659924</span>: <span class="hljs-number">09</span> f3 e7 eb
+<span class="hljs-attribute">00659928</span>: <span class="hljs-number">00</span> <span class="hljs-number">00</span> <span class="hljs-number">50</span> e3
+<span class="hljs-attribute">0065992c</span>: <span class="hljs-number">01</span> <span class="hljs-number">30</span> a0 <span class="hljs-number">13</span>
+<span class="hljs-attribute">00659930</span>: <span class="hljs-number">03</span> <span class="hljs-number">30</span> c8 <span class="hljs-number">15</span>
+<span class="hljs-attribute">00659934</span>: <span class="hljs-number">05</span> <span class="hljs-number">30</span> <span class="hljs-number">94</span> e7
+<span class="hljs-attribute">00659938</span>: <span class="hljs-number">04</span> <span class="hljs-number">24</span> <span class="hljs-number">9</span>d e5
+<span class="hljs-attribute">0065993c</span>: <span class="hljs-number">00</span> <span class="hljs-number">30</span> <span class="hljs-number">93</span> e5
+<span class="hljs-attribute">00659940</span>: <span class="hljs-number">03</span> <span class="hljs-number">00</span> <span class="hljs-number">52</span> e1
+<span class="hljs-attribute">00659944</span>: <span class="hljs-number">02</span> <span class="hljs-number">00</span> <span class="hljs-number">00</span> <span class="hljs-number">1</span>a
+</pre></div>
+<p>Hay una cosa especialmente llamativa: <strong><code>0x65992C</code> no está aislada</strong>. Las instrucciones inmediatamente anteriores y posteriores trabajan con el mismo registro <code>r3</code>.</p>
+<p>Por eso quiero ver la secuencia completa en ensamblador.</p>
+<p>En Debian, puedes instalar el desensamblador ARM:</p>
+<div class="code-wrapper"><div class="code-header"><span class="code-lang">plaintext</span></div><pre class="code-block hljs">sudo apt <span class="hljs-keyword">install </span><span class="hljs-keyword">binutils-arm-linux-gnueabi
+</span></pre></div>
+<p>Después necesitamos la dirección virtual de esa zona. Ejecuta:</p>
+<div class="code-wrapper"><div class="code-header"><span class="code-lang">plaintext</span></div><pre class="code-block hljs">readelf -<span class="hljs-keyword">lW </span>libFIFA12.so
+</pre></div>
+<p>Pásame la salida de las líneas <code>LOAD</code>.</p>
+<p>Con eso podemos convertir el offset:</p>
+<div class="code-wrapper"><div class="code-header"><span class="code-lang">plaintext</span></div><pre class="code-block hljs"><span class="hljs-number">0x65992C</span>
+</pre></div>
+<p>en la dirección virtual correcta y desensamblar algo como:</p>
+<div class="code-wrapper"><div class="code-header"><span class="code-lang">plaintext</span></div><pre class="code-block hljs"><span class="hljs-meta prompt_">...</span>
+cmp   r0, #0
+<span class="hljs-meta prompt_">...</span>
+add   r3, r0, #...
+<span class="hljs-meta prompt_">...</span>
+ldr   r3, [...]
+<span class="hljs-meta prompt_">...</span>
+</pre></div>
+<p>Entonces podremos determinar <strong>qué valor está modificando <code>03 30 c8 15</code></strong>, y ahí está la clave.</p>
+<h3>Y hay una prueba adicional que puede ser muy reveladora</h3>
+<p>Como ya comprobaste que:</p>
+<div class="code-wrapper"><div class="code-header"><span class="code-lang">plaintext</span></div><pre class="code-block hljs">NOP <span class="hljs-keyword">en</span> 0x65992C → audio OK + configuració<span class="hljs-keyword">n</span> <span class="hljs-keyword">rota</span>
+</pre></div>
+<p>podríamos probar una tercera variante: <strong>mantener la instrucción original pero alterar solamente el valor que utiliza</strong>, si el ensamblado revela que se trata de una operación con un parámetro concreto.</p>
+<p>No quiero proponerte un byte concreto todavía porque sería adivinar. Pero si la instrucción resulta ser, por ejemplo, una escritura:</p>
+<div class="code-wrapper"><div class="code-header"><span class="code-lang">plaintext</span></div><pre class="code-block hljs"><span class="hljs-keyword">str</span> <span class="hljs-built_in">r3</span>, [rX, <span class="hljs-symbol">#offset</span>]
+</pre></div>
+<p>podríamos investigar <strong>qué estructura está modificando</strong> y si esa escritura es la que acaba llegando al subsistema de audio.</p>
+<p>En ese caso quizá podamos conseguir:</p>
+<div class="code-wrapper"><div class="code-header"><span class="code-lang">plaintext</span></div><pre class="code-block hljs"><span class="hljs-selector-tag">audio</span> moderno ✅
+controles       ✅
+zoom            ✅
+altura cámara   ✅
+</pre></div>
+<p>sin necesidad de sustituir ninguna otra biblioteca.</p>
+<p>Así que el siguiente dato que necesito es simplemente la salida de:</p>
+<div class="code-wrapper"><div class="code-header"><span class="code-lang">plaintext</span></div><pre class="code-block hljs">readelf -<span class="hljs-keyword">lW </span>libFIFA12.so
+</pre></div>
+<p>Con eso podemos seguir desde el <code>0x65992C</code> exacto.</p>
+</div></div></div>
+    <div class="message user-message" id="user-msg-6"><div class="content"><p class="_wdUoQG_messageCopy">readelf -lW libFIFA12_original.so 
+
+El tipo del fichero elf es DYN (Fichero objeto compartido)
+Entry point 0x56590
+There are 5 program headers, starting at offset 52
+
+Encabezados de Programa:
+  Tipo           Desplaz  DirVirt    DirFísica  TamFich TamMem  Opt Alin
+  ARM_EXIDX      0xac41f8 0x00ac41f8 0x00ac41f8 0x2cf68 0x2cf68 R   0x4
+  LOAD           0x000000 0x00000000 0x00000000 0xaf1160 0xaf1160 R E 0x8000
+  LOAD           0xaf1160 0x00af9160 0x00af9160 0x58b58 0xb1f25c RW  0x8000
+  DYNAMIC        0xb1b350 0x00b23350 0x00b23350 0x000e8 0x000e8 RW  0x4
+  GNU_STACK      0x000000 0x00000000 0x00000000 0x00000 0x00000 RWE 0x4
+
+ Asignación de Sección a Segmento:
+  Segmento Secciones...
+   00     .ARM.exidx 
+   01     .hash .dynsym .dynstr .rel.dyn .rel.plt .plt .text .rodata .ARM.extab .ARM.exidx 
+   02     .init_array .fini_array .data.rel.ro .dynamic .got .data .bss 
+   03     .dynamic 
+   04</p></div></div>
+    <div class="message assistant-message"><div class="content"><div class="_wdUoQG_messageCopy _A1mksG_dilContent _pKBN-W_sportsContent"><p>Perfecto. Con esto ya podemos calcular la dirección virtual exacta.</p>
+<p>La zona <code>0x65992C</code> está dentro del primer segmento <code>LOAD</code>:</p>
+<div class="code-wrapper"><div class="code-header"><span class="code-lang">plaintext</span></div><pre class="code-block hljs"><span class="hljs-attribute">Offset</span> del LOAD:       <span class="hljs-number">0</span>x000000
+<span class="hljs-attribute">Direcci</span>ón virtual:     <span class="hljs-number">0</span>x00000000
+</pre></div>
+<p>Por tanto, en este caso concreto:</p>
+<div class="code-wrapper"><div class="code-header"><span class="code-lang">plaintext</span></div><pre class="code-block hljs"><span class="hljs-built_in">offset</span> en el archivo = direcció<span class="hljs-built_in">n</span> virtual
+</pre></div>
+<p>Así que la instrucción problemática está efectivamente en:</p>
+<div class="code-wrapper"><div class="code-header"><span class="code-lang">plaintext</span></div><pre class="code-block hljs"><span class="hljs-number">0x0065992C</span>
+</pre></div>
+<p>Y podemos desensamblarla directamente.</p>
+<h2>Vamos a mirar la función completa</h2>
+<p>Ejecuta en Debian:</p>
+<div class="code-wrapper"><div class="code-header"><span class="code-lang">plaintext</span></div><pre class="code-block hljs">arm-linux-gnueabi-objdump -D -m arm libFIFA12_original.so \
+  <span class="hljs-attribute">--start-address</span>=0x6598c0 \
+  <span class="hljs-attribute">--stop-address</span>=0x659980
+</pre></div>
+<p>Si <code>arm-linux-gnueabi-objdump</code> no existe, prueba:</p>
+<div class="code-wrapper"><div class="code-header"><span class="code-lang">plaintext</span></div><pre class="code-block hljs">arm-none-eabi-objdump -D -m arm libFIFA12_original.so \
+  <span class="hljs-attribute">--start-address</span>=0x6598c0 \
+  <span class="hljs-attribute">--stop-address</span>=0x659980
+</pre></div>
+<p>Quiero unas <strong>100–200 bytes alrededor</strong> de la instrucción, porque necesitamos ver de dónde viene <code>r3</code> y qué ocurre inmediatamente después.</p>
+<p>Deberías obtener algo parecido a:</p>
+<div class="code-wrapper"><div class="code-header"><span class="code-lang">plaintext</span></div><pre class="code-block hljs">00659920 &lt;<span class="hljs-string">...</span>&gt;:
+  659920: <span class="hljs-string">...</span>
+  659924: <span class="hljs-string">...</span>
+  659928: <span class="hljs-string">...</span>
+  65992c: <span class="hljs-string">...</span>
+  659930: <span class="hljs-string">...</span>
+</pre></div>
+<h3>Un detalle importante</h3>
+<p>En tus bytes tenemos:</p>
+<div class="code-wrapper"><div class="code-header"><span class="code-lang">plaintext</span></div><pre class="code-block hljs"><span class="hljs-attribute">659928</span>: <span class="hljs-number">00</span> <span class="hljs-number">00</span> <span class="hljs-number">50</span> e3
+<span class="hljs-attribute">65992c</span>: <span class="hljs-number">01</span> <span class="hljs-number">30</span> a0 <span class="hljs-number">13</span>
+<span class="hljs-attribute">659930</span>: <span class="hljs-number">03</span> <span class="hljs-number">30</span> c8 <span class="hljs-number">15</span>
+<span class="hljs-attribute">659934</span>: <span class="hljs-number">05</span> <span class="hljs-number">30</span> <span class="hljs-number">94</span> e7
+</pre></div>
+<p>Recordando que ARM almacena las instrucciones little-endian, son:</p>
+<div class="code-wrapper"><div class="code-header"><span class="code-lang">plaintext</span></div><pre class="code-block hljs"><span class="hljs-number">659928</span>: e<span class="hljs-number">3500000</span>
+<span class="hljs-number">65992</span>c: <span class="hljs-number">13a03001</span>
+<span class="hljs-number">659930</span>: <span class="hljs-number">15c83003</span>
+<span class="hljs-number">659934</span>: e<span class="hljs-number">7943005</span>
+</pre></div>
+<p>La segunda (<code>0x659930</code>, que en realidad es la que tú has convertido en NOP según la prueba) merece especial atención.</p>
+<p>Además, hay una observación importante: <strong>tu prueba experimental nos permite descartar que el problema sea simplemente "la biblioteca parcheada no es compatible"</strong>. Sabemos que el cambio funcional está contenido en una única instrucción de 4 bytes. Eso nos permite buscar una solución mucho más precisa.</p>
+<p>Pásame la salida del <code>objdump</code> de ese rango. Con ella podemos interpretar la instrucción problemática en contexto y, sobre todo, averiguar <strong>qué memoria está tocando y qué valor está escribiendo</strong>. Ahí probablemente podremos determinar por qué eliminarla arregla el audio pero rompe exactamente controles, zoom y altura de cámara.</p>
+</div></div></div>
+    <div class="message user-message" id="user-msg-7"><div class="content"><p class="_wdUoQG_messageCopy">arm-linux-gnueabi-objdump -D -m arm libFIFA12_original.so \ 
+  --start-address=0x6598c0 \
+  --stop-address=0x659980
+
+libFIFA12_original.so:     formato del fichero elf32-littlearm
+
+
+Desensamblado de la sección .text:
+
+006598c0 &lt;Java_com_ea_EAAudioCore_AndroidEAAudioCore_Init+0xdeac&gt;:
+  6598c0:       0a00001b        beq     659934 &lt;Java_com_ea_EAAudioCore_AndroidEAAudioCore_Init+0xdf20&gt;
+  6598c4:       e28d7008        add     r7, sp, #8
+  6598c8:       e2477004        sub     r7, r7, #4
+  6598cc:       e3a01001        mov     r1, #1
+  6598d0:       e3a02b01        mov     r2, #1024       @ 0x400
+  6598d4:       e1a03006        mov     r3, r6
+  6598d8:       e1a00007        mov     r0, r7
+  6598dc:       ebe7f132        bl      55dac &lt;fread@plt&gt;
+  6598e0:       e1a00006        mov     r0, r6
+  6598e4:       ebe7efa7        bl      55788 &lt;fclose@plt&gt;
+  6598e8:       e59f1078        ldr     r1, [pc, #120]  @ 659968 &lt;Java_com_ea_EAAudioCore_AndroidEAAudioCore_Init+0xdf54&gt;
+  6598ec:       e1a00007        mov     r0, r7
+  6598f0:       e08f1001        add     r1, pc, r1
+  6598f4:       ebe7f23a        bl      561e4 &lt;strstr@plt&gt;
+  6598f8:       e3500000        cmp     r0, #0
+  6598fc:       0a00000c        beq     659934 &lt;Java_com_ea_EAAudioCore_AndroidEAAudioCore_Init+0xdf20&gt;
+  659900:       e59f1064        ldr     r1, [pc, #100]  @ 65996c &lt;Java_com_ea_EAAudioCore_AndroidEAAudioCore_Init+0xdf58&gt;
+  659904:       e08f1001        add     r1, pc, r1
+  659908:       ebe7f0af        bl      55bcc &lt;strtok@plt&gt;
+  65990c:       e59f105c        ldr     r1, [pc, #92]   @ 659970 &lt;Java_com_ea_EAAudioCore_AndroidEAAudioCore_Init+0xdf5c&gt;
+  659910:       e3a00000        mov     r0, #0
+  659914:       e08f1001        add     r1, pc, r1
+  659918:       ebe7f0ab        bl      55bcc &lt;strtok@plt&gt;
+  65991c:       e59f1050        ldr     r1, [pc, #80]   @ 659974 &lt;Java_com_ea_EAAudioCore_AndroidEAAudioCore_Init+0xdf60&gt;
+  659920:       e08f1001        add     r1, pc, r1
+  659924:       ebe7f309        bl      56550 &lt;strcmp@plt&gt;
+  659928:       e3500000        cmp     r0, #0
+  65992c:       13a03001        movne   r3, #1
+  659930:       15c83003        strbne  r3, [r8, #3]
+  659934:       e7943005        ldr     r3, [r4, r5]
+  659938:       e59d2404        ldr     r2, [sp, #1028] @ 0x404
+  65993c:       e5933000        ldr     r3, [r3]
+  659940:       e1520003        cmp     r2, r3
+  659944:       1a000002        bne     659954 &lt;Java_com_ea_EAAudioCore_AndroidEAAudioCore_Init+0xdf40&gt;
+  659948:       e28dd008        add     sp, sp, #8
+  65994c:       e28ddb01        add     sp, sp, #1024   @ 0x400
+  659950:       e8bd81f0        pop     {r4, r5, r6, r7, r8, pc}
+  659954:       ebe7f144        bl      55e6c &lt;__stack_chk_fail@plt&gt;
+  659958:       004c9ba0        subeq   r9, ip, r0, lsr #23
+  65995c:       00000d84        andeq   r0, r0, r4, lsl #27
+  659960:       0042892c        subeq   r8, r2, ip, lsr #18
+  659964:       00420378        subeq   r0, r2, r8, ror r3
+  659968:       004288f8        strdeq  r8, [r2], #-136 @ 0xffffff78
+  65996c:       003e638c        eorseq  r6, lr, ip, lsl #7
+  659970:       004510fc        strdeq  r1, [r5], #-12
+  659974:       0040d268        subeq   sp, r0, r8, ror #4
+  659978:       e3a03000        mov     r3, #0
+  65997c:       e92d4010        push    {r4, lr}</p></div></div>
+    <div class="message assistant-message"><div class="content"><div class="_wdUoQG_messageCopy _A1mksG_dilContent _pKBN-W_sportsContent"><p>Ahora sí: <strong>ya tenemos identificado exactamente qué hace el parche</strong>, y además explica perfectamente tu síntoma.</p>
+<p>La instrucción que estás anulando es:</p>
+<div class="code-wrapper"><div class="code-header"><span class="code-lang">plaintext</span></div><pre class="code-block hljs"><span class="hljs-number">65992</span>c: <span class="hljs-number">13</span>a03001    <span class="hljs-keyword">movne</span> <span class="hljs-built_in">r3</span>, <span class="hljs-number">#1</span>
+<span class="hljs-number">659930</span>: <span class="hljs-number">15</span>c83003    <span class="hljs-keyword">strbne</span> <span class="hljs-built_in">r3</span>, [<span class="hljs-built_in">r8</span>, <span class="hljs-number">#3</span>]
+</pre></div>
+<p>Y aquí hay una distinción importante: cuando dijiste que sustituías "la segunda instrucción por NOP", es <code>0x659930</code> la que has parcheado.</p>
+<h2>Qué está haciendo</h2>
+<p>Justo antes:</p>
+<div class="code-wrapper"><div class="code-header"><span class="code-lang">plaintext</span></div><pre class="code-block hljs"><span class="hljs-number">659924</span>: <span class="hljs-keyword">bl</span>   strcmp<span class="hljs-comment">@plt</span>
+<span class="hljs-number">659928</span>: <span class="hljs-keyword">cmp</span>  <span class="hljs-built_in">r0</span>, <span class="hljs-number">#0</span>
+<span class="hljs-number">65992</span>c: <span class="hljs-keyword">movne</span> <span class="hljs-built_in">r3</span>, <span class="hljs-number">#1</span>
+<span class="hljs-number">659930</span>: <span class="hljs-keyword">strbne</span> <span class="hljs-built_in">r3</span>, [<span class="hljs-built_in">r8</span>, <span class="hljs-number">#3</span>]
+</pre></div>
+<p>En pseudocódigo, es aproximadamente:</p>
+<div class="code-wrapper"><div class="code-header"><span class="code-lang">plaintext</span></div><pre class="code-block hljs">resultado = strcmp<span class="hljs-comment">(...)</span>;
+
+<span class="hljs-keyword">if</span> <span class="hljs-comment">(resultado != 0)</span> {
+    r<span class="hljs-number">8</span>[<span class="hljs-number">3</span>] = <span class="hljs-number">1</span>;
+}
+</pre></div>
+<p>Es decir, el código compara dos cadenas y, <strong>si son diferentes</strong>, escribe un <code>1</code> en el cuarto byte de una estructura apuntada por <code>r8</code>.</p>
+<p>Y esto está dentro de:</p>
+<div class="code-wrapper"><div class="code-header"><span class="code-lang">plaintext</span></div><pre class="code-block hljs">Jav<span class="hljs-built_in">a_com</span>_e<span class="hljs-built_in">a_EAAudioCore</span>_AndroidEAAudioCore_Init
+</pre></div>
+<p>O sea, <strong>estamos inequívocamente dentro de la inicialización del sistema de audio de EA</strong>.</p>
+<p>Eso explica por qué quitar esa escritura arregla el audio.</p>
+<p>Pero también explica por qué aparecen efectos secundarios: <code>r8[3]</code> no tiene por qué ser exclusivamente "una variable de audio". Puede ser un campo de una estructura compartida, un flag de estado, etc.</p>
+<hr>
+<h2>Hay una solución mucho más interesante que el NOP</h2>
+<p>Ahora sabemos que el parche original hace:</p>
+<div class="code-wrapper"><div class="code-header"><span class="code-lang">plaintext</span></div><pre class="code-block hljs"><span class="hljs-attribute">if</span> (strcmp(...) != <span class="hljs-number">0</span>)
+    <span class="hljs-attribute">r8</span>[<span class="hljs-number">3</span>] = <span class="hljs-number">1</span>;
+</pre></div>
+<p>y que eliminar la escritura completa provoca tus problemas de controles/cámara.</p>
+<p>Por tanto, <strong>yo probaría primero a cambiar el comportamiento de esa escritura, no simplemente eliminarla</strong>.</p>
+<p>Por ejemplo, tenemos que averiguar qué valor tiene <code>r8[3]</code> y qué representa.</p>
+<p>La estructura relevante probablemente se inicializó antes en esta misma función. Podemos rastrear <code>r8</code> hacia atrás.</p>
+<p>Necesito que desensamblemos un rango bastante mayor hacia arriba:</p>
+<div class="code-wrapper"><div class="code-header"><span class="code-lang">plaintext</span></div><pre class="code-block hljs">arm-linux-gnueabi-objdump -D -m arm libFIFA12_original.so \
+  <span class="hljs-attribute">--start-address</span>=0x659700 \
+  <span class="hljs-attribute">--stop-address</span>=0x659940
+</pre></div>
+<p>Con eso podremos ver:</p>
+<ul>
+<li>dónde se carga <code>r8</code>;</li>
+<li>qué estructura apunta;</li>
+<li>cómo se inicializa;</li>
+<li>qué otros campos de <code>r8</code> se utilizan;</li>
+<li>y, potencialmente, qué significa <code>r8+3</code>.</li>
+</ul>
+<h3>Y hay una pista muy fuerte</h3>
+<p>Observa esto:</p>
+<div class="code-wrapper"><div class="code-header"><span class="code-lang">plaintext</span></div><pre class="code-block hljs"><span class="hljs-number">65992</span>c: <span class="hljs-keyword">movne</span> <span class="hljs-built_in">r3</span>, <span class="hljs-number">#1</span>
+<span class="hljs-number">659930</span>: <span class="hljs-keyword">strbne</span> <span class="hljs-built_in">r3</span>, [<span class="hljs-built_in">r8</span>, <span class="hljs-number">#3</span>]
+</pre></div>
+<p>El parcheado hace:</p>
+<div class="code-wrapper"><div class="code-header"><span class="code-lang">plaintext</span></div><pre class="code-block hljs"><span class="hljs-number">65992</span>c: <span class="hljs-keyword">movne</span> <span class="hljs-built_in">r3</span>, <span class="hljs-number">#1</span>
+<span class="hljs-number">659930</span>: <span class="hljs-keyword">nop</span>
+</pre></div>
+<p>Por tanto, <code>movne r3,#1</code> <strong>sigue ejecutándose</strong>, pero como ya no se almacena en <code>r8+3</code>, el valor se queda en <code>r3</code>.</p>
+<p>Eso significa que podemos plantearnos otras modificaciones muy pequeñas, por ejemplo hacer que la escritura se produzca bajo una condición diferente, o que escriba otro valor. <strong>Pero no quiero inventar el parche hasta saber qué es <code>r8+3</code>.</strong></p>
+<hr>
+<h2>También podemos buscar quién lee <code>r8+3</code></h2>
+<p>Esta sería probablemente la vía más definitiva.</p>
+<p>La escritura es:</p>
+<div class="code-wrapper"><div class="code-header"><span class="code-lang">plaintext</span></div><pre class="code-block hljs"><span class="hljs-keyword">strbne</span> <span class="hljs-built_in">r3</span>, [<span class="hljs-built_in">r8</span>, <span class="hljs-number">#3</span>]
+</pre></div>
+<p>Así que necesitamos encontrar otras instrucciones que hagan algo como:</p>
+<div class="code-wrapper"><div class="code-header"><span class="code-lang">plaintext</span></div><pre class="code-block hljs">ldrb <span class="hljs-params">...</span>, <span class="hljs-meta">[</span><span class="hljs-literal">rX</span>, #3<span class="hljs-meta">]</span>
+</pre></div>
+<p>sobre esa misma estructura.</p>
+<p>Si descubrimos que ese byte es, por ejemplo:</p>
+<div class="code-wrapper"><div class="code-header"><span class="code-lang">plaintext</span></div><pre class="code-block hljs"><span class="hljs-attribute">audio_initialized</span>
+</pre></div>
+<p>la solución será una.</p>
+<p>Si resulta ser:</p>
+<div class="code-wrapper"><div class="code-header"><span class="code-lang">plaintext</span></div><pre class="code-block hljs"><span class="hljs-attribute">some_global_flag</span>
+</pre></div>
+<p>utilizado por varias partes del juego, entonces <strong>tenemos la explicación exacta de por qué controles/cámara dejan de funcionar</strong>.</p>
+<hr>
+<h3>En resumen</h3>
+<p>Ya no estamos a oscuras:</p>
+<div class="code-wrapper"><div class="code-header"><span class="code-lang">plaintext</span></div><pre class="code-block hljs">strcmp()
+   ↓
+¿son diferentes?
+   ↓ sí
+<span class="hljs-built_in">r8</span>[<span class="hljs-number">3</span>] = <span class="hljs-number">1</span>       ← esta escritura causa el problema de audio
+   ↓
+<span class="hljs-keyword">NOP</span>              ← arregla audio
+   ↓
+pero <span class="hljs-built_in">r8</span>[<span class="hljs-number">3</span>] queda sin actualizar
+   ↓
+controles/cámara/zoom dejan de funcionar correctamente
+</pre></div>
+<p>La solución probablemente sea <strong>encontrar qué representa <code>r8+3</code> y conseguir que el juego pueda satisfacer la condición necesaria para el audio sin destruir el estado que necesita el resto del juego</strong>.</p>
+<p>Pásame el <code>objdump</code> de <code>0x659700–0x659940</code>. Con eso podemos seguir el origen de <code>r8</code> y seguramente podremos identificar el campo concreto.</p>
+</div></div></div>
+    <div class="message user-message" id="user-msg-8"><div class="content"><p class="_wdUoQG_messageCopy">arm-linux-gnueabi-objdump -D -m arm libFIFA12_original.so \ 
+  --start-address=0x659700 \
+  --stop-address=0x659940
+
+libFIFA12_original.so:     formato del fichero elf32-littlearm
+
+
+Desensamblado de la sección .text:
+
+00659700 &lt;Java_com_ea_EAAudioCore_AndroidEAAudioCore_Init+0xdcec&gt;:
+  659700:       eb0136c8        bl      6a7228 &lt;Java_com_ea_EAAudioCore_AndroidEAAudioCore_Release+0x3b870&gt;
+  659704:       e5c4501a        strb    r5, [r4, #26]
+  659708:       e5963034        ldr     r3, [r6, #52]   @ 0x34
+  65970c:       e2833001        add     r3, r3, #1
+  659710:       e5863034        str     r3, [r6, #52]   @ 0x34
+  659714:       e8bd8070        pop     {r4, r5, r6, pc}
+  659718:       e92d41f0        push    {r4, r5, r6, r7, r8, lr}
+  65971c:       ed2d8b02        vpush   {d8}
+  659720:       e5ddc028        ldrb    ip, [sp, #40]   @ 0x28
+  659724:       e1a04000        mov     r4, r0
+  659728:       e1a08002        mov     r8, r2
+  65972c:       e35c0000        cmp     ip, #0
+  659730:       e1a05003        mov     r5, r3
+  659734:       e59d7020        ldr     r7, [sp, #32]
+  659738:       0a000038        beq     659820 &lt;Java_com_ea_EAAudioCore_AndroidEAAudioCore_Init+0xde0c&gt;
+  65973c:       e3a0301c        mov     r3, #28
+  659740:       e0260193        mla     r6, r3, r1, r0
+  659744:       e5960018        ldr     r0, [r6, #24]
+  659748:       ebe7f2f9        bl      56334 &lt;sinf@plt&gt;
+  65974c:       ed967a04        vldr    s14, [r6, #16]
+  659750:       ed968a02        vldr    s16, [r6, #8]
+  659754:       eddf7a47        vldr    s15, [pc, #284] @ 659878 &lt;Java_com_ea_EAAudioCore_AndroidEAAudioCore_Init+0xde64&gt;
+  659758:       ee060a10        vmov    s12, r0
+  65975c:       eeb88a48        vcvt.f32.u32    s16, s16
+  659760:       ee767a27        vadd.f32        s15, s12, s15
+  659764:       eeb87a47        vcvt.f32.u32    s14, s14
+  659768:       ee078a27        vmla.f32        s16, s14, s15
+  65976c:       eddf7a42        vldr    s15, [pc, #264] @ 65987c &lt;Java_com_ea_EAAudioCore_AndroidEAAudioCore_Init+0xde68&gt;
+  659770:       ee388a27        vadd.f32        s16, s16, s15
+  659774:       eeb77ac8        vcvt.f64.f32    d7, s16
+  659778:       ec510b17        vmov    r0, r1, d7
+  65977c:       ebe7f0e2        bl      55b0c &lt;ceil@plt&gt;
+  659780:       edd47a3f        vldr    s15, [r4, #252] @ 0xfc
+  659784:       eef87a67        vcvt.f32.u32    s15, s15
+  659788:       ee378ac8        vsub.f32        s16, s15, s16
+  65978c:       eeb77ac8        vcvt.f64.f32    d7, s16
+  659790:       ec410b16        vmov    d6, r0, r1
+  659794:       ec510b17        vmov    r0, r1, d7
+  659798:       eefc8bc6        vcvt.u32.f64    s17, d6
+  65979c:       ebe7f2d5        bl      562f8 &lt;floor@plt&gt;
+  6597a0:       ec410b16        vmov    d6, r0, r1
+  6597a4:       eefd6bc6        vcvt.s32.f64    s13, d6
+  6597a8:       ee161a90        vmov    r1, s13
+  6597ac:       e59400f4        ldr     r0, [r4, #244]  @ 0xf4
+  6597b0:       e59420e0        ldr     r2, [r4, #224]  @ 0xe0
+  6597b4:       e0815005        add     r5, r1, r5
+  6597b8:       e1a00100        lsl     r0, r0, #2
+  6597bc:       e3550000        cmp     r5, #0
+  6597c0:       c3a03000        movgt   r3, #0
+  6597c4:       d3a03001        movle   r3, #1
+  6597c8:       e0262098        mla     r6, r8, r0, r2
+  6597cc:       e59d2024        ldr     r2, [sp, #36]   @ 0x24
+  6597d0:       e3510000        cmp     r1, #0
+  6597d4:       b1a0c003        movlt   ip, r3
+  6597d8:       a383c001        orrge   ip, r3, #1
+  6597dc:       e3a00000        mov     r0, #0
+  6597e0:       e35c0000        cmp     ip, #0
+  6597e4:       e5820000        str     r0, [r2]
+  6597e8:       0a000013        beq     65983c &lt;Java_com_ea_EAAudioCore_AndroidEAAudioCore_Init+0xde28&gt;
+  6597ec:       e1530000        cmp     r3, r0
+  6597f0:       159430f4        ldrne   r3, [r4, #244]  @ 0xf4
+  6597f4:       e5970000        ldr     r0, [r7]
+  6597f8:       10855003        addne   r5, r5, r3
+  6597fc:       10811003        addne   r1, r1, r3
+  659800:       e2855001        add     r5, r5, #1
+  659804:       e0612005        rsb     r2, r1, r5
+  659808:       e1a02102        lsl     r2, r2, #2
+  65980c:       e0861101        add     r1, r6, r1, lsl #2
+  659810:       ebe7f030        bl      558d8 &lt;memcpy@plt&gt;
+  659814:       ee180a90        vmov    r0, s17
+  659818:       ecbd8b02        vpop    {d8}
+  65981c:       e8bd81f0        pop     {r4, r5, r6, r7, r8, pc}
+  659820:       e3a0201c        mov     r2, #28
+  659824:       e0230192        mla     r3, r2, r1, r0
+  659828:       eddf7a13        vldr    s15, [pc, #76]  @ 65987c &lt;Java_com_ea_EAAudioCore_AndroidEAAudioCore_Init+0xde68&gt;
+  65982c:       ed938a02        vldr    s16, [r3, #8]
+  659830:       eeb88a48        vcvt.f32.u32    s16, s16
+  659834:       ee388a27        vadd.f32        s16, s16, s15
+  659838:       eaffffcd        b       659774 &lt;Java_com_ea_EAAudioCore_AndroidEAAudioCore_Init+0xdd60&gt;
+  65983c:       e59430f4        ldr     r3, [r4, #244]  @ 0xf4
+  659840:       e2611000        rsb     r1, r1, #0
+  659844:       e1a04101        lsl     r4, r1, #2
+  659848:       e0611003        rsb     r1, r1, r3
+  65984c:       e0861101        add     r1, r6, r1, lsl #2
+  659850:       e1a02004        mov     r2, r4
+  659854:       e5970000        ldr     r0, [r7]
+  659858:       ebe7f01e        bl      558d8 &lt;memcpy@plt&gt;
+  65985c:       e5970000        ldr     r0, [r7]
+  659860:       e2852001        add     r2, r5, #1
+  659864:       e1a01006        mov     r1, r6
+  659868:       e0800004        add     r0, r0, r4
+  65986c:       e1a02102        lsl     r2, r2, #2
+  659870:       ebe7f018        bl      558d8 &lt;memcpy@plt&gt;
+  659874:       eaffffe6        b       659814 &lt;Java_com_ea_EAAudioCore_AndroidEAAudioCore_Init+0xde00&gt;
+  659878:       3f800000        svccc   0x00800000
+  65987c:       44000000        strmi   r0, [r0], #-0
+  659880:       e92d41f0        push    {r4, r5, r6, r7, r8, lr}
+  659884:       e59f40cc        ldr     r4, [pc, #204]  @ 659958 &lt;Java_com_ea_EAAudioCore_AndroidEAAudioCore_Init+0xdf44&gt;
+  659888:       e59f50cc        ldr     r5, [pc, #204]  @ 65995c &lt;Java_com_ea_EAAudioCore_AndroidEAAudioCore_Init+0xdf48&gt;
+  65988c:       e1a08000        mov     r8, r0
+  659890:       e08f4004        add     r4, pc, r4
+  659894:       e7943005        ldr     r3, [r4, r5]
+  659898:       e59f00c0        ldr     r0, [pc, #192]  @ 659960 &lt;Java_com_ea_EAAudioCore_AndroidEAAudioCore_Init+0xdf4c&gt;
+  65989c:       e59f10c0        ldr     r1, [pc, #192]  @ 659964 &lt;Java_com_ea_EAAudioCore_AndroidEAAudioCore_Init+0xdf50&gt;
+  6598a0:       e5933000        ldr     r3, [r3]
+  6598a4:       e24ddb01        sub     sp, sp, #1024   @ 0x400
+  6598a8:       e24dd008        sub     sp, sp, #8
+  6598ac:       e08f0000        add     r0, pc, r0
+  6598b0:       e08f1001        add     r1, pc, r1
+  6598b4:       e58d3404        str     r3, [sp, #1028] @ 0x404
+  6598b8:       ebe7efc7        bl      557dc &lt;fopen@plt&gt;
+  6598bc:       e2506000        subs    r6, r0, #0
+  6598c0:       0a00001b        beq     659934 &lt;Java_com_ea_EAAudioCore_AndroidEAAudioCore_Init+0xdf20&gt;
+  6598c4:       e28d7008        add     r7, sp, #8
+  6598c8:       e2477004        sub     r7, r7, #4
+  6598cc:       e3a01001        mov     r1, #1
+  6598d0:       e3a02b01        mov     r2, #1024       @ 0x400
+  6598d4:       e1a03006        mov     r3, r6
+  6598d8:       e1a00007        mov     r0, r7
+  6598dc:       ebe7f132        bl      55dac &lt;fread@plt&gt;
+  6598e0:       e1a00006        mov     r0, r6
+  6598e4:       ebe7efa7        bl      55788 &lt;fclose@plt&gt;
+  6598e8:       e59f1078        ldr     r1, [pc, #120]  @ 659968 &lt;Java_com_ea_EAAudioCore_AndroidEAAudioCore_Init+0xdf54&gt;
+  6598ec:       e1a00007        mov     r0, r7
+  6598f0:       e08f1001        add     r1, pc, r1
+  6598f4:       ebe7f23a        bl      561e4 &lt;strstr@plt&gt;
+  6598f8:       e3500000        cmp     r0, #0
+  6598fc:       0a00000c        beq     659934 &lt;Java_com_ea_EAAudioCore_AndroidEAAudioCore_Init+0xdf20&gt;
+  659900:       e59f1064        ldr     r1, [pc, #100]  @ 65996c &lt;Java_com_ea_EAAudioCore_AndroidEAAudioCore_Init+0xdf58&gt;
+  659904:       e08f1001        add     r1, pc, r1
+  659908:       ebe7f0af        bl      55bcc &lt;strtok@plt&gt;
+  65990c:       e59f105c        ldr     r1, [pc, #92]   @ 659970 &lt;Java_com_ea_EAAudioCore_AndroidEAAudioCore_Init+0xdf5c&gt;
+  659910:       e3a00000        mov     r0, #0
+  659914:       e08f1001        add     r1, pc, r1
+  659918:       ebe7f0ab        bl      55bcc &lt;strtok@plt&gt;
+  65991c:       e59f1050        ldr     r1, [pc, #80]   @ 659974 &lt;Java_com_ea_EAAudioCore_AndroidEAAudioCore_Init+0xdf60&gt;
+  659920:       e08f1001        add     r1, pc, r1
+  659924:       ebe7f309        bl      56550 &lt;strcmp@plt&gt;
+  659928:       e3500000        cmp     r0, #0
+  65992c:       13a03001        movne   r3, #1
+  659930:       15c83003        strbne  r3, [r8, #3]
+  659934:       e7943005        ldr     r3, [r4, r5]
+  659938:       e59d2404        ldr     r2, [sp, #1028] @ 0x404
+  65993c:       e5933000        ldr     r3, [r3]</p></div></div>
+    <div class="message assistant-message"><div class="content"><div class="_wdUoQG_messageCopy _A1mksG_dilContent _pKBN-W_sportsContent"><p>Perfecto. Con esto ya podemos sacar una conclusión bastante sólida.</p>
+<p>La función empieza en <code>0x659880</code> y recibe el puntero que acaba en <code>r8</code> aquí:</p>
+<div class="code-wrapper"><div class="code-header"><span class="code-lang">plaintext</span></div><pre class="code-block hljs"><span class="hljs-number">65988</span>c:    <span class="hljs-keyword">mov</span>     <span class="hljs-built_in">r8</span>, <span class="hljs-built_in">r0</span>
+</pre></div>
+<p>Por tanto, en:</p>
+<div class="code-wrapper"><div class="code-header"><span class="code-lang">plaintext</span></div><pre class="code-block hljs"><span class="hljs-number">659930</span>:    <span class="hljs-keyword">strbne</span>  <span class="hljs-built_in">r3</span>, [<span class="hljs-built_in">r8</span>, <span class="hljs-number">#3</span>]
+</pre></div>
+<p>se está escribiendo <strong>un byte en el objeto/estructura que recibió la función como primer argumento, concretamente en el offset <code>+3</code></strong>.</p>
+<p>Y el flujo completo es:</p>
+<div class="code-wrapper"><div class="code-header"><span class="code-lang">plaintext</span></div><pre class="code-block hljs"><span class="hljs-number">6598</span>e8:    ... 
+<span class="hljs-number">6598</span><span class="hljs-built_in">f4</span>:    <span class="hljs-keyword">bl</span>      strstr
+<span class="hljs-symbol">...</span>
+<span class="hljs-number">659924</span>:    <span class="hljs-keyword">bl</span>      strcmp
+<span class="hljs-number">659928</span>:    <span class="hljs-keyword">cmp</span>     <span class="hljs-built_in">r0</span>, <span class="hljs-number">#0</span>
+<span class="hljs-number">65992</span>c:    <span class="hljs-keyword">movne</span>   <span class="hljs-built_in">r3</span>, <span class="hljs-number">#1</span>
+<span class="hljs-number">659930</span>:    <span class="hljs-keyword">strbne</span>  <span class="hljs-built_in">r3</span>, [<span class="hljs-built_in">r8</span>, <span class="hljs-number">#3</span>]
+</pre></div>
+<p>En C aproximado:</p>
+<div class="code-wrapper"><div class="code-header"><span class="code-lang">plaintext</span></div><pre class="code-block hljs"><span class="hljs-keyword">if</span> <span class="hljs-comment">(strcmp(...)</span> != <span class="hljs-number">0</span>)
+    *<span class="hljs-comment">(uint8_t *)</span><span class="hljs-comment">(r8 + 3)</span> = <span class="hljs-number">1</span>;
+</pre></div>
+<h2>Hay una prueba que ahora merece muchísimo la pena</h2>
+<p>Hasta ahora has probado:</p>
+<div class="code-wrapper"><div class="code-header"><span class="code-lang">plaintext</span></div><pre class="code-block hljs"><span class="hljs-symbol">Original:</span>
+movne <span class="hljs-built_in">r3</span>, <span class="hljs-meta">#1</span>
+strbne <span class="hljs-built_in">r3</span>, [<span class="hljs-built_in">r8</span>,<span class="hljs-meta">#3]</span>
+
+<span class="hljs-symbol">Parche:</span>
+movne <span class="hljs-built_in">r3</span>, <span class="hljs-meta">#1</span>
+<span class="hljs-keyword">NOP</span>
+</pre></div>
+<p>Es decir, has hecho que <strong>no se escriba nada</strong>.</p>
+<p>Pero eso no es necesariamente lo mismo que poner el campo a cero.</p>
+<p>Yo probaría una variante intermedia:</p>
+<div class="code-wrapper"><div class="code-header"><span class="code-lang">plaintext</span></div><pre class="code-block hljs"><span class="hljs-keyword">movne</span> <span class="hljs-built_in">r3</span>, <span class="hljs-number">#0</span>
+<span class="hljs-keyword">strbne</span> <span class="hljs-built_in">r3</span>, [<span class="hljs-built_in">r8</span>, <span class="hljs-number">#3</span>]
+</pre></div>
+<p>En bytes ARM little-endian, la primera instrucción sería:</p>
+<div class="code-wrapper"><div class="code-header"><span class="code-lang">plaintext</span></div><pre class="code-block hljs"><span class="hljs-symbol">00 </span><span class="hljs-number">30</span> A0 <span class="hljs-number">03</span>
+</pre></div>
+<p>en <code>0x65992C</code>.</p>
+<p>Así que:</p>
+<div class="code-wrapper"><div class="code-header"><span class="code-lang">plaintext</span></div><pre class="code-block hljs"><span class="hljs-number">0x65992C</span> – <span class="hljs-number">0x65992F</span>
+</pre></div>
+<p>pasaría de:</p>
+<div class="code-wrapper"><div class="code-header"><span class="code-lang">plaintext</span></div><pre class="code-block hljs"><span class="hljs-symbol">01 </span><span class="hljs-number">30</span> A0 <span class="hljs-number">13</span>
+</pre></div>
+<p>a:</p>
+<div class="code-wrapper"><div class="code-header"><span class="code-lang">plaintext</span></div><pre class="code-block hljs"><span class="hljs-symbol">00 </span><span class="hljs-number">30</span> A0 <span class="hljs-number">03</span>
+</pre></div>
+<p>y <strong>dejarías intactos los 4 bytes de <code>0x659930</code></strong>:</p>
+<div class="code-wrapper"><div class="code-header"><span class="code-lang">plaintext</span></div><pre class="code-block hljs"><span class="hljs-symbol">03 </span><span class="hljs-number">30</span> C8 <span class="hljs-number">15</span>
+</pre></div>
+<p>Esto es una prueba especialmente interesante porque compara tres comportamientos:</p>
+<div class="_wdUoQG_tableFrame"><div class="_wdUoQG_tableScroller"><table><thead><tr><th>Variante</th><th><code>r8[3]</code> cuando <code>strcmp != 0</code></th><th>Audio</th><th>Configuración</th></tr></thead><tbody>
+<tr><td>Original</td><td><code>1</code></td><td>❌</td><td>✅</td></tr>
+<tr><td>NOP</td><td>conserva valor anterior</td><td>✅</td><td>❌</td></tr>
+<tr><td><strong><code>movne r3,#0</code></strong></td><td><strong><code>0</code></strong></td><td><strong>¿?</strong></td><td><strong>¿?</strong></td></tr>
+</tbody></table>
+</div></div>
+<p>Si <strong><code>movne r3,#0</code> consigue audio bueno y además recupera controles/zoom/cámara</strong>, habremos encontrado prácticamente la solución definitiva.</p>
+<h3>¿Por qué tiene sentido probarlo?</h3>
+<p>Porque el NOP hace esto:</p>
+<div class="code-wrapper"><div class="code-header"><span class="code-lang">plaintext</span></div><pre class="code-block hljs"><span class="hljs-comment">// no modificar r8[3]</span>
+</pre></div>
+<p>mientras que nuestra variante haría:</p>
+<div class="code-wrapper"><div class="code-header"><span class="code-lang">plaintext</span></div><pre class="code-block hljs"><span class="hljs-comment">// cuando se cumple la condición:</span>
+<span class="hljs-keyword">r8</span>[<span class="hljs-number">3</span>] = <span class="hljs-number">0</span>;
+</pre></div>
+<p>Puede perfectamente ocurrir que el objeto <code>r8</code> ya llegue con un valor distinto de cero en ese byte. El parche mediante NOP simplemente deja ese valor intacto, mientras que el APK parcheado que encontraste aparentemente necesitaba evitar el <code>1</code>.</p>
+<p>Es decir, podríamos tener:</p>
+<div class="code-wrapper"><div class="code-header"><span class="code-lang">plaintext</span></div><pre class="code-block hljs">              <span class="hljs-keyword">Original
+</span>                 │
+        strcmp != <span class="hljs-number">0</span>
+                 │
+                 ▼
+              r8[<span class="hljs-number">3</span>]=<span class="hljs-number">1</span>
+                 │
+          ┌──────┴──────┐
+          ▼             ▼
+       audio malo    <span class="hljs-built_in">config</span> OK
+
+
+              <span class="hljs-keyword">NOP
+</span>                 │
+        strcmp != <span class="hljs-number">0</span>
+                 │
+                 ▼
+           r8[<span class="hljs-number">3</span>]=valor previo
+                 │
+          ┌──────┴──────┐
+          ▼             ▼
+       audio OK      <span class="hljs-built_in">config</span> mal
+
+
+           <span class="hljs-keyword">movne </span><span class="hljs-comment">#0</span>
+                 │
+        strcmp != <span class="hljs-number">0</span>
+                 │
+                 ▼
+              r8[<span class="hljs-number">3</span>]=<span class="hljs-number">0</span>
+                 │
+          ┌──────┴──────┐
+          ▼             ▼
+       audio OK      <span class="hljs-built_in">config</span> OK
+</pre></div>
+<p><strong>Es una hipótesis, pero ahora sí es una prueba muy barata y con bastante fundamento.</strong></p>
+<h2>Si tampoco funciona</h2>
+<p>Entonces el siguiente paso sería identificar <strong>qué es <code>r8</code></strong>.</p>
+<p>Y aquí ya tenemos una ventaja enorme: sabemos que esta función es llamada desde <code>Java_com_ea_EAAudioCore_AndroidEAAudioCore_Init</code>, y podemos buscar todas las referencias a esa función para descubrir qué objeto le pasa como primer argumento.</p>
+<p>En otras palabras, podemos reconstruir:</p>
+<div class="code-wrapper"><div class="code-header"><span class="code-lang">plaintext</span></div><pre class="code-block hljs"><span class="hljs-symbol">Java_com_ea_EAAudioCore_AndroidEAAudioCore_Init</span>
+             │
+             └── llama a función <span class="hljs-number">0x659880</span>
+                          │
+                          └── <span class="hljs-built_in">r0</span> → <span class="hljs-built_in">r8</span>
+                                  │
+                                  └── +<span class="hljs-number">3</span> = campo desconocido
+</pre></div>
+<p>Entonces podríamos averiguar si ese byte es realmente un <strong>flag del motor de audio</strong>, un estado global o algo compartido con otra parte de FIFA 12.</p>
+<h3>Yo haría ahora mismo la prueba <code>movne #0</code></h3>
+<p>Haz una copia de seguridad de la <code>.so</code>, cambia únicamente:</p>
+<div class="code-wrapper"><div class="code-header"><span class="code-lang">plaintext</span></div><pre class="code-block hljs"><span class="hljs-symbol">01 </span><span class="hljs-number">30</span> A0 <span class="hljs-number">13</span>
+</pre></div>
+<p>por:</p>
+<div class="code-wrapper"><div class="code-header"><span class="code-lang">plaintext</span></div><pre class="code-block hljs"><span class="hljs-symbol">00 </span><span class="hljs-number">30</span> A0 <span class="hljs-number">03</span>
+</pre></div>
+<p>en <code>0x65992C</code>.</p>
+<p><strong>No cambies <code>0x659930</code>.</strong></p>
+<p>Después prueba específicamente:</p>
+<ol>
+<li>audio;</li>
+<li>cambiar controles;</li>
+<li>zoom;</li>
+<li>altura de cámara;</li>
+<li>salir y volver a entrar en el menú;</li>
+<li>reiniciar completamente el juego y comprobar que los cambios siguen ahí.</li>
+</ol>
+<p>Si esa variante funciona, hemos tenido mucha suerte: <strong>podríamos haber encontrado un parche de 4 bytes que solucione ambos problemas sin tocar el resto de <code>libFIFA12.so</code>.</strong></p>
+</div></div></div>
+    <div class="message user-message" id="user-msg-9"><div class="content"><p class="_wdUoQG_messageCopy">Escribir lo que pides provoca que no se abra la aplicación.</p></div></div>
+    <div class="message assistant-message"><div class="content"><div class="_wdUoQG_messageCopy _A1mksG_dilContent _pKBN-W_sportsContent"><p>Ah, aquí está el problema: <strong>te di mal los bytes de la instrucción</strong>. Perdón. La idea era correcta, pero al cambiar la instrucción convertí accidentalmente <code>NE</code> (<code>!=</code>) en <code>EQ</code> (<code>==</code>).</p>
+<p>La original es:</p>
+<div class="code-wrapper"><div class="code-header"><span class="code-lang">plaintext</span></div><pre class="code-block hljs"><span class="hljs-attribute">65992c</span>: <span class="hljs-number">13</span>a03001    movne r3, #<span class="hljs-number">1</span>
+</pre></div>
+<p>Los bytes son:</p>
+<div class="code-wrapper"><div class="code-header"><span class="code-lang">plaintext</span></div><pre class="code-block hljs"><span class="hljs-symbol">01 </span><span class="hljs-number">30</span> A0 <span class="hljs-number">13</span>
+</pre></div>
+<p>Para hacer:</p>
+<div class="code-wrapper"><div class="code-header"><span class="code-lang">plaintext</span></div><pre class="code-block hljs"><span class="hljs-keyword">movne</span> <span class="hljs-built_in">r3</span>, <span class="hljs-number">#0</span>
+</pre></div>
+<p>hay que conservar el sufijo <code>NE</code>. La instrucción correcta es:</p>
+<div class="code-wrapper"><div class="code-header"><span class="code-lang">plaintext</span></div><pre class="code-block hljs"><span class="hljs-number">13A03000</span>
+</pre></div>
+<p>y en little-endian los bytes son:</p>
+<div class="code-wrapper"><div class="code-header"><span class="code-lang">plaintext</span></div><pre class="code-block hljs"><span class="hljs-symbol">00 </span><span class="hljs-number">30</span> A0 <span class="hljs-number">13</span>
+</pre></div>
+<p><strong>No</strong>:</p>
+<div class="code-wrapper"><div class="code-header"><span class="code-lang">plaintext</span></div><pre class="code-block hljs"><span class="hljs-symbol">00 </span><span class="hljs-number">30</span> A0 <span class="hljs-number">03</span>
+</pre></div>
+<p>que fue lo que te indiqué antes. <code>03</code> cambia la condición de la instrucción.</p>
+<h3>Por tanto, prueba correcta</h3>
+<p>Partiendo de la <code>.so</code> original, modifica solamente:</p>
+<div class="code-wrapper"><div class="code-header"><span class="code-lang">plaintext</span></div><pre class="code-block hljs"><span class="hljs-attribute">Offset</span> <span class="hljs-number">0</span>x65992C
+
+<span class="hljs-attribute">Original</span>:
+<span class="hljs-attribute">01</span> <span class="hljs-number">30</span> A0 <span class="hljs-number">13</span>
+
+<span class="hljs-attribute">Nuevo</span>:
+<span class="hljs-attribute">00</span> <span class="hljs-number">30</span> A0 <span class="hljs-number">13</span>
+</pre></div>
+<p>Y deja intacto:</p>
+<div class="code-wrapper"><div class="code-header"><span class="code-lang">plaintext</span></div><pre class="code-block hljs"><span class="hljs-number">0</span>x659930:
+<span class="hljs-symbol">03 </span><span class="hljs-number">30</span> C8 <span class="hljs-number">15</span>
+</pre></div>
+<p>Deberías terminar con:</p>
+<div class="code-wrapper"><div class="code-header"><span class="code-lang">plaintext</span></div><pre class="code-block hljs"><span class="hljs-number">659928</span>: e3500000        <span class="hljs-keyword">cmp</span>     <span class="hljs-built_in">r0</span>, <span class="hljs-number">#0</span>
+<span class="hljs-number">65992</span>c: <span class="hljs-number">13</span>a03000        <span class="hljs-keyword">movne</span>   <span class="hljs-built_in">r3</span>, <span class="hljs-number">#0</span>
+<span class="hljs-number">659930</span>: <span class="hljs-number">15</span>c83003        <span class="hljs-keyword">strbne</span>  <span class="hljs-built_in">r3</span>, [<span class="hljs-built_in">r8</span>, <span class="hljs-number">#3</span>]
+</pre></div>
+<p>En pseudocódigo:</p>
+<div class="code-wrapper"><div class="code-header"><span class="code-lang">plaintext</span></div><pre class="code-block hljs"><span class="hljs-attribute">if</span> (strcmp(...) != <span class="hljs-number">0</span>)
+    <span class="hljs-attribute">r8</span>[<span class="hljs-number">3</span>] = <span class="hljs-number">0</span>;
+</pre></div>
+<p>Esto es exactamente la prueba que quería hacer.</p>
+<p><strong>Importante:</strong> hazlo partiendo nuevamente del <code>.so</code> original, no del que ya habías modificado.</p>
+<p>Después comprueba audio, controles, zoom y altura de cámara. Si esta variante funciona, habremos encontrado una solución de solo <strong>un cambio de byte</strong>:</p>
+<div class="code-wrapper"><div class="code-header"><span class="code-lang">plaintext</span></div><pre class="code-block hljs"><span class="hljs-symbol">01 </span>→ <span class="hljs-number">00</span>
+</pre></div>
+<p>manteniendo el resto de la biblioteca original.</p>
+<p>Y si tampoco funciona, el siguiente paso será averiguar qué representa exactamente <code>r8+3</code>; pero esta vez la prueba que te propongo sí corresponde a la instrucción ARM correcta.</p>
+</div></div></div>
+    <div class="message user-message" id="user-msg-10"><div class="content"><p class="_wdUoQG_messageCopy">Tremendo. Parece que he arreglado el APK. Tengo que revisar ahora cuidadosamente si es la versión con la instrucción "00 30 A0 13" o "00 30 A0 03", ya que no me llegó a funcionar el APK al principio porque se me había borrado la carpeta data del juego. Y de mientras, se estaba importando el otro APK. Así que necesito tenerlo claro.</p></div></div>
+    <div class="message assistant-message"><div class="content"><div class="_wdUoQG_messageCopy _A1mksG_dilContent _pKBN-W_sportsContent"><p>Sí: aquí conviene dejarlo <strong>cristalino</strong>, porque hubo una confusión anterior por mi parte.</p>
+<h3>Las dos variantes</h3>
+<p>En <code>0x65992C</code> tienes estas posibilidades:</p>
+<div class="_wdUoQG_tableFrame"><div class="_wdUoQG_tableScroller"><table><thead><tr><th>Bytes</th><th>Ensamblado</th><th>Qué hace</th></tr></thead><tbody>
+<tr><td><code>01 30 A0 13</code></td><td><code>movne r3, #1</code></td><td><strong>Original</strong></td></tr>
+<tr><td><code>00 30 A0 13</code></td><td><code>movne r3, #0</code></td><td><strong>La variante que quiero que pruebes</strong></td></tr>
+<tr><td><code>00 30 A0 03</code></td><td><code>moveq r3, #0</code></td><td><strong>NO es la variante que te propuse</strong></td></tr>
+</tbody></table>
+</div></div>
+<p>La diferencia crucial está en el último byte:</p>
+<div class="code-wrapper"><div class="code-header"><span class="code-lang">plaintext</span></div><pre class="code-block hljs"><span class="hljs-symbol">13 </span>= NE (<span class="hljs-keyword">not</span> equal)
+<span class="hljs-symbol">03 </span>= EQ (equal)
+</pre></div>
+<p>Por tanto, <strong><code>00 30 A0 13</code> es la modificación correcta de nuestra hipótesis</strong>.</p>
+<h3>Qué debería contener tu <code>.so</code> final</h3>
+<p>Si partes del <code>libFIFA12.so</code> original, el bloque debería quedar:</p>
+<div class="code-wrapper"><div class="code-header"><span class="code-lang">plaintext</span></div><pre class="code-block hljs"><span class="hljs-attribute">00659928</span>: <span class="hljs-number">00</span> <span class="hljs-number">00</span> <span class="hljs-number">50</span> E3
+<span class="hljs-attribute">0065992C</span>: <span class="hljs-number">00</span> <span class="hljs-number">30</span> A0 <span class="hljs-number">13</span>
+<span class="hljs-attribute">00659930</span>: <span class="hljs-number">03</span> <span class="hljs-number">30</span> C8 <span class="hljs-number">15</span>
+<span class="hljs-attribute">00659934</span>: <span class="hljs-number">05</span> <span class="hljs-number">30</span> <span class="hljs-number">94</span> E7
+</pre></div>
+<p>Es decir:</p>
+<div class="code-wrapper"><div class="code-header"><span class="code-lang">plaintext</span></div><pre class="code-block hljs"><span class="hljs-number">659928</span>: <span class="hljs-keyword">cmp</span>     <span class="hljs-built_in">r0</span>, <span class="hljs-number">#0</span>
+<span class="hljs-number">65992</span>c: <span class="hljs-keyword">movne</span>   <span class="hljs-built_in">r3</span>, <span class="hljs-number">#0</span>
+<span class="hljs-number">659930</span>: <span class="hljs-keyword">strbne</span>  <span class="hljs-built_in">r3</span>, [<span class="hljs-built_in">r8</span>, <span class="hljs-number">#3</span>]
+<span class="hljs-number">659934</span>: <span class="hljs-keyword">ldr</span>     <span class="hljs-built_in">r3</span>, [<span class="hljs-built_in">r4</span>, <span class="hljs-built_in">r5</span>]
+</pre></div>
+<p>Y el SHA-256 <strong>no será</strong> ninguno de los dos que tenías inicialmente, porque has cambiado 1 byte respecto al original.</p>
+<p>Puedes comprobar exactamente qué versión tienes con:</p>
+<div class="code-wrapper"><div class="code-header"><span class="code-lang">plaintext</span></div><pre class="code-block hljs"><span class="hljs-attribute">xxd</span> -s <span class="hljs-number">0</span>x659928 -l <span class="hljs-number">16</span> libFIFA12.so
+</pre></div>
+<p>Si aparece:</p>
+<div class="code-wrapper"><div class="code-header"><span class="code-lang">plaintext</span></div><pre class="code-block hljs"><span class="hljs-attribute">00659928</span>: <span class="hljs-number">0000</span> <span class="hljs-number">50</span>e3 <span class="hljs-number">0030</span> a013 <span class="hljs-number">0330</span> c815 <span class="hljs-number">0530</span> <span class="hljs-number">94</span>e7
+</pre></div>
+<p>tienes la versión <strong><code>00 30 A0 13</code></strong>, que es la que queremos probar.</p>
+<p>Si aparece:</p>
+<div class="code-wrapper"><div class="code-header"><span class="code-lang">plaintext</span></div><pre class="code-block hljs"><span class="hljs-attribute">00659928</span>: <span class="hljs-number">0000</span> <span class="hljs-number">50</span>e3 <span class="hljs-number">0030</span> a003 <span class="hljs-number">0330</span> c815 <span class="hljs-number">0530</span> <span class="hljs-number">94</span>e7
+</pre></div>
+<p>tienes la versión <strong><code>00 30 A0 03</code></strong>, que fue la modificación incorrecta que te indiqué inicialmente.</p>
+<h3>Y una cosa importante</h3>
+<p>Lo que te pasó con la carpeta <code>data</code> hace que <strong>la prueba anterior no sea concluyente</strong>. Si el juego no arrancó porque faltaban sus datos y, simultáneamente, se estaba importando el otro APK, es perfectamente posible que hayas atribuido el fallo al <code>.so</code> cuando en realidad era el estado incompleto del juego.</p>
+<p>Así que yo haría una prueba limpia:</p>
+<ol>
+<li>Parte del APK que sabes que tiene el <code>libFIFA12.so</code> original.</li>
+<li>Cambia únicamente <code>01 30 A0 13</code> → <code>00 30 A0 13</code>.</li>
+<li>Comprueba con <code>xxd</code> que quedó exactamente así.</li>
+<li>Instálalo/importa sus datos normalmente.</li>
+<li>Prueba <strong>audio + controles + zoom + altura de cámara</strong>.</li>
+<li>Cierra y vuelve a abrir el juego para comprobar la persistencia.</li>
+</ol>
+<p>Si todo eso funciona, <strong>yo consideraría <code>00 30 A0 13</code> como nuestro parche candidato definitivo</strong>.</p>
+<p>Y, sinceramente, hemos tenido bastante suerte: hemos pasado de una diferencia de <strong>8 bytes</strong> a descubrir que probablemente basta con cambiar <strong>un único byte</strong> de la <code>libFIFA12.so</code> original.</p>
+</div></div></div>
+    <div class="message user-message" id="user-msg-11"><div class="content"><p class="_wdUoQG_messageCopy">Como bien dices, la instrucción terminada en 13 es la correcta. Como soy paranoico, voy a desinstalar la aplicación completa y volverla a probar por si acaso. Con esto, tenemos la prueba definitiva.</p></div></div>
+    <div class="message assistant-message"><div class="content"><div class="_wdUoQG_messageCopy _A1mksG_dilContent _pKBN-W_sportsContent"><p>Exacto. Esa reinstalación limpia es una muy buena idea, porque elimina la última variable que podía contaminar la prueba: los datos/configuración que hayan quedado de las instalaciones anteriores.</p>
+<p>La prueba definitiva sería:</p>
+<ul>
+<li><code>libFIFA12.so</code> <strong>original</strong>.</li>
+<li>Único cambio: en <code>0x65992C</code>, <code>01 30 A0 13</code> → <strong><code>00 30 A0 13</code></strong>.</li>
+<li><code>0x659930</code> permanece intacto: <code>03 30 C8 15</code>.</li>
+<li>Instalación completamente limpia.</li>
+<li>Comprobar audio.</li>
+<li>Cambiar controles, zoom y altura de cámara.</li>
+<li>Salir del juego, volver a entrar y comprobar que los cambios persisten.</li>
+<li>Reiniciar la aplicación y repetir la comprobación.</li>
+</ul>
+<p>Si todo eso pasa, tendremos una conclusión bastante elegante:</p>
+<blockquote>
+<p><strong>El parche de compatibilidad de audio de FIFA 12 no necesita eliminar la escritura en <code>r8+3</code>; basta con cambiar el valor escrito de <code>1</code> a <code>0</code>.</strong></p>
+</blockquote>
+<p>Es decir, de:</p>
+<div class="code-wrapper"><div class="code-header"><span class="code-lang">plaintext</span></div><pre class="code-block hljs"><span class="hljs-keyword">movne</span> <span class="hljs-built_in">r3</span>, <span class="hljs-number">#1</span>
+<span class="hljs-keyword">strbne</span> <span class="hljs-built_in">r3</span>, [<span class="hljs-built_in">r8</span>, <span class="hljs-number">#3</span>]
+</pre></div>
+<p>a:</p>
+<div class="code-wrapper"><div class="code-header"><span class="code-lang">plaintext</span></div><pre class="code-block hljs"><span class="hljs-keyword">movne</span> <span class="hljs-built_in">r3</span>, <span class="hljs-number">#0</span>
+<span class="hljs-keyword">strbne</span> <span class="hljs-built_in">r3</span>, [<span class="hljs-built_in">r8</span>, <span class="hljs-number">#3</span>]
+</pre></div>
+<p>Y lo mejor es que el cambio binario es literalmente:</p>
+<div class="code-wrapper"><div class="code-header"><span class="code-lang">plaintext</span></div><pre class="code-block hljs"><span class="hljs-number">01</span> <span class="hljs-number">30</span> <span class="hljs-built_in">A0</span> <span class="hljs-number">13</span>
+↓
+<span class="hljs-number">00</span> <span class="hljs-number">30</span> <span class="hljs-built_in">A0</span> <span class="hljs-number">13</span>
+</pre></div>
+<p><strong>Un solo byte.</strong></p>
+<p>Si la prueba limpia confirma todo, yo guardaría esa <code>.so</code> como una versión maestra y conservaría también el original intacto. Incluso puedes calcular el SHA-256 de la versión final para tenerla perfectamente identificada y poder reproducir el parche en el futuro.</p>
+</div></div></div>
+    <div class="message user-message" id="user-msg-12"><div class="content"><p class="_wdUoQG_messageCopy">Tengo pensado publicar en GitHub los pasos que he realizado para poder ayudar a otras personas. Sospecho que tendré que indicar los pasos sin poder pasar el libFIFA12.so por problemas de Copyright, ¿no?</p></div></div>
+    <div class="message assistant-message"><div class="content"><div class="_wdUoQG_messageCopy _A1mksG_dilContent _pKBN-W_sportsContent"><p>Sí, <strong>yo sería prudente y no subiría el <code>libFIFA12.so</code></strong>, aunque sea el resultado de aplicar un parche de un byte.</p>
+<p>La distinción importante es entre <strong>publicar el binario del juego</strong> y <strong>publicar información para que cada usuario parchee su propia copia</strong>.</p>
+<h3>Lo que publicaría en GitHub</h3>
+<p>Puedes hacer un repositorio perfectamente útil con algo como:</p>
+<div class="code-wrapper"><div class="code-header"><span class="code-lang">plaintext</span></div><pre class="code-block hljs">README<span class="hljs-selector-class">.md</span>
+patch<span class="hljs-selector-class">.py</span>
+checksums<span class="hljs-selector-class">.txt</span>
+LICENSE
+</pre></div>
+<p>Y documentar:</p>
+<div class="code-wrapper"><div class="code-header"><span class="code-lang">plaintext</span></div><pre class="code-block hljs"><span class="hljs-attribute">Archivo</span>: lib/armeabi/libFIFA12.so
+
+<span class="hljs-attribute">Offset</span>: <span class="hljs-number">0</span>x65992C
+
+<span class="hljs-attribute">Original</span>:
+<span class="hljs-attribute">01</span> <span class="hljs-number">30</span> A0 <span class="hljs-number">13</span>
+
+<span class="hljs-attribute">Parcheado</span>:
+<span class="hljs-attribute">00</span> <span class="hljs-number">30</span> A0 <span class="hljs-number">13</span>
+</pre></div>
+<p>Incluso puedes proporcionar un pequeño script que haga la modificación <strong>sobre el archivo que el usuario ya posee</strong>:</p>
+<div class="code-wrapper"><div class="code-header"><span class="code-lang">plaintext</span></div><pre class="code-block hljs">from pathlib import Path
+
+<span class="hljs-selector-tag">path</span> = <span class="hljs-built_in">Path</span>(<span class="hljs-string">"libFIFA12.so"</span>)
+data = <span class="hljs-built_in">bytearray</span>(<span class="hljs-selector-tag">path</span><span class="hljs-selector-class">.read_bytes</span>())
+
+offset = <span class="hljs-number">0</span>x65992C
+
+assert data<span class="hljs-selector-attr">[offset:offset+4]</span> == bytes<span class="hljs-selector-class">.fromhex</span>(<span class="hljs-string">"01 30 A0 13"</span>), \
+    <span class="hljs-string">"No parece ser la versión original esperada."</span>
+
+data<span class="hljs-selector-attr">[offset:offset+4]</span> = bytes<span class="hljs-selector-class">.fromhex</span>(<span class="hljs-string">"00 30 A0 13"</span>)
+
+<span class="hljs-selector-tag">path</span><span class="hljs-selector-class">.with_name</span>(<span class="hljs-string">"libFIFA12_patched.so"</span>)<span class="hljs-selector-class">.write_bytes</span>(data)
+
+<span class="hljs-function"><span class="hljs-title">print</span><span class="hljs-params">(<span class="hljs-string">"Parche aplicado correctamente."</span>)</span></span>
+</pre></div>
+<p>Eso tiene además una ventaja enorme: <strong>no distribuyes ningún código propietario de EA</strong>. Distribuyes un procedimiento que transforma una copia que ya tiene el usuario.</p>
+<h3>También pondría los hashes</h3>
+<p>Por ejemplo:</p>
+<div class="code-wrapper"><div class="code-header"><span class="code-lang">plaintext</span></div><pre class="code-block hljs">Original SHA<span class="hljs-number">-256</span>:
+e<span class="hljs-number">37</span>b<span class="hljs-number">4</span>dd<span class="hljs-number">96</span>a<span class="hljs-number">117</span>ba<span class="hljs-number">3</span>d<span class="hljs-number">745</span><span class="hljs-keyword">c</span><span class="hljs-number">9</span>ba<span class="hljs-number">3</span>dabfc<span class="hljs-number">5</span>fd<span class="hljs-number">51</span>d<span class="hljs-number">6</span>a<span class="hljs-number">21436</span><span class="hljs-keyword">c</span><span class="hljs-number">5473</span>ee<span class="hljs-number">4</span>db<span class="hljs-number">82</span>d<span class="hljs-number">65</span>ea<span class="hljs-number">98</span><span class="hljs-keyword">c</span><span class="hljs-number">9</span>
+
+Parcheado que has obtenido:
+[calcularlo]
+</pre></div>
+<p>Esto permite que alguien compruebe que está trabajando con la versión correcta de <code>libFIFA12.so</code>.</p>
+<p>Y documentaría claramente que el parche <strong>requiere la versión exacta del binario original</strong>. El <code>assert</code> del script es una buena protección contra aplicar el parche a una versión distinta.</p>
+<h3>¿Y el APK parcheado?</h3>
+<p>Ahí sería todavía más conservador. <strong>No distribuiría el APK completo</strong>, ni <code>libFIFA12.so</code>, ni otros archivos extraídos del juego.</p>
+<p>En cambio, sí puedes documentar:</p>
+<ul>
+<li>qué versión de FIFA 12 utilizaste;</li>
+<li>dónde está la biblioteca dentro del APK;</li>
+<li>el offset;</li>
+<li>los bytes originales;</li>
+<li>los bytes modificados;</li>
+<li>cómo extraer/reemplazar la biblioteca;</li>
+<li>cómo volver a firmar el APK;</li>
+<li>qué problema soluciona;</li>
+<li>cómo comprobar que el parche se ha aplicado correctamente.</li>
+</ul>
+<p>También puedes explicar el descubrimiento técnico:</p>
+<div class="code-wrapper"><div class="code-header"><span class="code-lang">plaintext</span></div><pre class="code-block hljs"><span class="hljs-symbol">Java_com_ea_EAAudioCore_AndroidEAAudioCore_Init</span>
+    ↓
+<span class="hljs-symbol">strcmp</span>()
+    ↓
+<span class="hljs-keyword">movne</span> <span class="hljs-built_in">r3</span>, <span class="hljs-number">#1</span>
+<span class="hljs-keyword">strbne</span> <span class="hljs-built_in">r3</span>, [<span class="hljs-built_in">r8</span>, <span class="hljs-number">#3</span>]
+</pre></div>
+<p>y que el cambio consiste en hacer que escriba <code>0</code> en lugar de <code>1</code>.</p>
+<p>Eso hace que el repositorio sea <strong>mucho más reproducible y educativo</strong> sin convertirse en un repositorio que redistribuya partes del juego.</p>
+<h3>Una pequeña cautela jurídica</h3>
+<p>No puedo decirte que publicar ese parche sea definitivamente legal en todos los países. Las excepciones para ingeniería inversa, interoperabilidad y modificación de software varían según jurisdicción y circunstancias. Además, los términos de la licencia de FIFA 12 pueden imponer restricciones adicionales.</p>
+<p>Pero, como regla práctica, <strong>“no redistribuir el binario propietario; publicar instrucciones/parche que opere sobre una copia legítimamente obtenida por el usuario”</strong> es una estrategia mucho más prudente que subir el <code>.so</code> o el APK.</p>
+<p>Y dado que has conseguido reducir el cambio a <strong>un único byte</strong>, tienes un caso especialmente bueno para documentarlo como <em>binary patch</em> reproducible.</p>
+<p>Si quieres, también puedo ayudarte a preparar un <strong>README de GitHub completo</strong>, con la explicación del problema, análisis ARM, los offsets, los comandos de extracción/reempaquetado y un script de parcheo, sin incluir ningún archivo propietario.</p>
+</div></div></div>
+    <div class="message user-message" id="user-msg-13"><div class="content"><p class="_wdUoQG_messageCopy">Me gusta mucho este código Python para parchearlo. Cuando termine con la prueba mencionada, lo pruebo.</p></div></div>
+    <div class="message assistant-message"><div class="content"><div class="_wdUoQG_messageCopy _A1mksG_dilContent _pKBN-W_sportsContent"><p>Perfecto. Yo también esperaría a terminar la prueba limpia antes de dar el parche por definitivo.</p>
+<p>Cuando la hagas, si todo queda confirmado, el flujo que hemos obtenido es muy limpio:</p>
+<div class="code-wrapper"><div class="code-header"><span class="code-lang">plaintext</span></div><pre class="code-block hljs">libFIFA12.so <span class="hljs-keyword">original
+</span>        │
+        │  <span class="hljs-number">01</span> <span class="hljs-number">30</span> <span class="hljs-built_in">A0</span> <span class="hljs-number">13</span>
+        ▼
+   parche de <span class="hljs-number">1</span> <span class="hljs-keyword">byte
+</span>        │
+        │  <span class="hljs-number">00</span> <span class="hljs-number">30</span> <span class="hljs-built_in">A0</span> <span class="hljs-number">13</span>
+        ▼
+libFIFA12.so compatible
+</pre></div>
+<p>Y el <code>assert</code> del script es especialmente importante para GitHub: evita que alguien aplique accidentalmente el parche a una versión diferente de la biblioteca.</p>
+<p>Cuando tengas la confirmación, podemos hacer una última pasada y dejar el script más robusto, por ejemplo haciendo que:</p>
+<ul>
+<li>compruebe automáticamente el SHA-256 de entrada;</li>
+<li>verifique los bytes originales;</li>
+<li>genere <code>libFIFA12_patched.so</code> sin tocar el original;</li>
+<li>compruebe los bytes finales;</li>
+<li>calcule el SHA-256 resultante;</li>
+<li>y muestre claramente qué ha hecho.</li>
+</ul>
+<p>Así tendrás algo que puedas publicar con confianza y que otra persona pueda ejecutar sin necesidad de entender hexadecimal ni ARM.</p>
+</div></div></div>
+    <div class="message user-message" id="user-msg-14"><div class="content"><p class="_wdUoQG_messageCopy">Acabo de probar el script en Python para parchear el .so y funciona perfectamente. Aunque pienso que sería mejor idea crear un script en python que pase como parámetro el nombre del APK para que así no tenga que estar el usuario descomprimiendo y comprimiendo el APK sólo por un archivo. El APK resultante tendría el sufixo _patched, conservando el nombre del original.</p></div></div>
+    <div class="message assistant-message"><div class="content"><div class="_wdUoQG_messageCopy _A1mksG_dilContent _pKBN-W_sportsContent"><p>Sí, me parece <strong>bastante mejor para el usuario final</strong>. Además, así el repositorio puede presentar el parche como una herramienta de <em>one-click-ish patching</em>: recibe el APK original y genera otro sin modificar el original.</p>
+<p>Yo lo haría con <code>zipfile</code> de Python, ya que un APK es esencialmente un ZIP. El script puede:</p>
+<ul>
+<li>recibir <code>FIFA12.apk</code> como argumento;</li>
+<li>buscar exactamente <code>lib/armeabi/libFIFA12.so</code>;</li>
+<li>verificar que es la versión esperada mediante SHA-256;</li>
+<li>comprobar los 4 bytes originales;</li>
+<li>cambiar solamente el byte necesario;</li>
+<li>generar <code>FIFA12_patched.apk</code>;</li>
+<li>conservar todo lo demás del APK exactamente igual;</li>
+<li>verificar que el <code>.so</code> resultante contiene <code>00 30 A0 13</code>.</li>
+</ul>
+<p>Hay, eso sí, <strong>un detalle importante</strong>: modificar el APK invalida su firma. Por tanto, el APK resultante necesitará ser <strong>firmado de nuevo</strong> antes de instalarlo. Podemos hacer que el script se encargue también de eso, pero yo separaría inicialmente el parcheo de la firma para que el código sea sencillo y multiplataforma.</p>
+<p>Te propongo este script:</p>
+<span>Redacción</span><div></div><div><span></span><span></span></div><div><h1>FIFA 12 Android Audio Patch</h1>
+<p>Script para aplicar automáticamente el parche de compatibilidad de audio a un APK de FIFA 12.</p>
+<p>El script modifica únicamente un byte de <code>lib/armeabi/libFIFA12.so</code> y deja intacto el APK original.</p>
+<div class="code-wrapper"><div class="code-header"><span class="code-lang">plaintext</span></div><pre class="code-block hljs"><span class="hljs-comment">#!/usr/bin/env python3</span>
+
+import hashlib
+import sys
+import zipfile
+from pathlib import Path
+
+
+LIB_PATH = <span class="hljs-string">"lib/armeabi/libFIFA12.so"</span>
+
+EXPECTED_SHA256 = (
+    <span class="hljs-string">"e37b4dd96a117ba3d745c9ba3dabfc5fd51d6a21436c5473ee4db82d65ea98c9"</span>
+)
+
+PATCH_OFFSET = <span class="hljs-number">0</span>x65992C
+
+ORIGINAL_BYTES = bytes.fromhex(<span class="hljs-string">"01 30 A0 13"</span>)
+PATCHED_BYTES = bytes.fromhex(<span class="hljs-string">"00 30 A0 13"</span>)
+
+
+def sha256(data):
+    return hashlib.sha256(data).hexdigest()
+
+
+def main():
+    <span class="hljs-keyword">if</span> len(sys.argv) != <span class="hljs-number">2</span>:
+        print(f<span class="hljs-string">"Uso: {Path(sys.argv[0]).name} &lt;archivo.apk&gt;"</span>)
+        sys.<span class="hljs-keyword">exit</span>(<span class="hljs-number">1</span>)
+
+    input_path = Path(sys.argv[<span class="hljs-number">1</span>])
+
+    <span class="hljs-keyword">if</span> not input_path.is_file():
+        print(f<span class="hljs-string">"Error: no existe el archivo: {input_path}"</span>)
+        sys.<span class="hljs-keyword">exit</span>(<span class="hljs-number">1</span>)
+
+    <span class="hljs-keyword">if</span> input_path.suffix.lower() != <span class="hljs-string">".apk"</span>:
+        print(<span class="hljs-string">"Error: el archivo indicado no tiene extensión .apk"</span>)
+        sys.<span class="hljs-keyword">exit</span>(<span class="hljs-number">1</span>)
+
+    output_path = input_path.with_name(
+        input_path.stem + <span class="hljs-string">"_patched"</span> + input_path.suffix
+    )
+
+    print(f<span class="hljs-string">"APK de entrada: {input_path}"</span>)
+    print(f<span class="hljs-string">"APK de salida:  {output_path}"</span>)
+    print()
+
+    with zipfile.ZipFile(input_path, <span class="hljs-string">"r"</span>) as zin:
+
+        <span class="hljs-keyword">if</span> LIB_PATH not <span class="hljs-keyword">in</span> zin.namelist():
+            print(f<span class="hljs-string">"Error: no se encuentra {LIB_PATH} en el APK."</span>)
+            sys.<span class="hljs-keyword">exit</span>(<span class="hljs-number">1</span>)
+
+        original_so = zin.read(LIB_PATH)
+
+    print(f<span class="hljs-string">"Tamaño de {LIB_PATH}: {len(original_so):,} bytes"</span>)
+
+    original_hash = sha256(original_so)
+
+    print(f<span class="hljs-string">"SHA-256: {original_hash}"</span>)
+
+    <span class="hljs-keyword">if</span> original_hash != EXPECTED_SHA256:
+        print()
+        print(<span class="hljs-string">"ERROR: la libFIFA12.so no coincide con la versión esperada."</span>)
+        print(<span class="hljs-string">"No se ha aplicado ningún parche."</span>)
+        sys.<span class="hljs-keyword">exit</span>(<span class="hljs-number">1</span>)
+
+    print(<span class="hljs-string">"Versión de libFIFA12.so reconocida correctamente."</span>)
+
+    <span class="hljs-keyword">if</span> original_so[PATCH_OFFSET:PATCH_OFFSET + <span class="hljs-number">4</span>] != ORIGINAL_BYTES:
+        print()
+        print(<span class="hljs-string">"ERROR: los bytes en el offset esperado no coinciden."</span>)
+        print(<span class="hljs-string">"No se ha aplicado ningún parche."</span>)
+        sys.<span class="hljs-keyword">exit</span>(<span class="hljs-number">1</span>)
+
+    patched_so = bytearray(original_so)
+
+    patched_so[PATCH_OFFSET:PATCH_OFFSET + <span class="hljs-number">4</span>] = PATCHED_BYTES
+
+    patched_so = bytes(patched_so)
+
+    print(
+        f<span class="hljs-string">"Parche aplicado en 0x{PATCH_OFFSET:X}: "</span>
+        f<span class="hljs-string">"{ORIGINAL_BYTES.hex(' ')} -&gt; {PATCHED_BYTES.hex(' ')}"</span>
+    )
+
+    patched_hash = sha256(patched_so)
+
+    print(f<span class="hljs-string">"SHA-256 nuevo: {patched_hash}"</span>)
+
+    <span class="hljs-comment"># Crear el APK nuevo.</span>
+    with zipfile.ZipFile(input_path, <span class="hljs-string">"r"</span>) as zin, \
+         zipfile.ZipFile(output_path, <span class="hljs-string">"w"</span>) as zout:
+
+        <span class="hljs-keyword">for</span> item <span class="hljs-keyword">in</span> zin.infolist():
+            data = zin.read(item.filename)
+
+            <span class="hljs-keyword">if</span> item.filename == LIB_PATH:
+                data = patched_so
+
+            zout.writestr(item, data)
+
+    print()
+    print(<span class="hljs-string">"Parche aplicado correctamente."</span>)
+    print(f<span class="hljs-string">"APK generado: {output_path}"</span>)
+    print()
+    print(<span class="hljs-string">"IMPORTANTE: el APK ha sido modificado y su firma original"</span>)
+    print(<span class="hljs-string">"ya no es válida. Debes volver a firmarlo antes de instalarlo."</span>)
+
+
+<span class="hljs-keyword">if</span> __name__ == <span class="hljs-string">"__main__"</span>:
+    main()
+</pre></div>
+<p>Uso:</p>
+<div class="code-wrapper"><div class="code-header"><span class="code-lang">plaintext</span></div><pre class="code-block hljs">python3 patch_fifa12<span class="hljs-selector-class">.py</span> FIFA12<span class="hljs-selector-class">.apk</span>
+</pre></div>
+<p>El resultado será:</p>
+<div class="code-wrapper"><div class="code-header"><span class="code-lang">plaintext</span></div><pre class="code-block hljs">FIFA12<span class="hljs-selector-class">.apk</span>
+FIFA12_patched<span class="hljs-selector-class">.apk</span>
+</pre></div>
+<p>El APK original no se modifica.</p>
+</div>
+<p>Me gusta especialmente que el script <strong>no acepte silenciosamente cualquier <code>libFIFA12.so</code></strong>. El SHA-256 hace que si alguien intenta utilizar otra versión de FIFA 12, el programa se detenga en lugar de aplicar un parche potencialmente incorrecto.</p>
+<h3>Un detalle que cambiaría antes de publicarlo</h3>
+<p>Hay una pequeña mejora que merece la pena: <strong>no necesitamos reescribir el APK entero a nivel lógico</strong>, pero <code>zipfile</code> sí reconstruye el contenedor ZIP. Eso puede modificar detalles como el orden de las entradas o algunos metadatos del ZIP, aunque el contenido de las demás entradas se conserve.</p>
+<p>Para nuestro propósito normalmente no supone un problema, pero para una herramienta de parcheo de APK me parece más elegante que el script deje muy claro:</p>
+<blockquote>
+<p>"Todos los archivos del APK se copian sin modificación; únicamente se reemplaza <code>lib/armeabi/libFIFA12.so</code>."</p>
+</blockquote>
+<p>Y posteriormente podemos añadir una segunda etapa opcional para <strong>firmar automáticamente el APK</strong> con <code>apksigner</code>.</p>
+<p>De hecho, para tu repositorio yo haría finalmente:</p>
+<div class="code-wrapper"><div class="code-header"><span class="code-lang">plaintext</span></div><pre class="code-block hljs">fifa12-audio-patch/
+├── README<span class="hljs-selector-class">.md</span>
+├── patch_fifa12<span class="hljs-selector-class">.py</span>
+└── LICENSE
+</pre></div>
+<p>y el README explicaría el descubrimiento técnico que hemos hecho: el parche original cambia <code>strbne r3, [r8, #3]</code> por <code>NOP</code>, mientras que nuestra solución cambia <code>movne r3, #1</code> por <code>movne r3, #0</code>. Eso hace que el parche publicado sea reproducible sin distribuir ningún componente de FIFA 12.</p>
+</div></div></div>
+    <div class="message user-message" id="user-msg-15"><div class="content"><p class="_wdUoQG_messageCopy">Acabo de probar el último script y ha funcionado correctamente.</p></div></div>
+    <div class="message assistant-message"><div class="content"><div class="_wdUoQG_messageCopy _A1mksG_dilContent _pKBN-W_sportsContent"><p>¡Genial! Entonces ya tenemos el procedimiento prácticamente cerrado. 😄</p>
+<p>La solución que has validado queda así:</p>
+<div class="code-wrapper"><div class="code-header"><span class="code-lang">plaintext</span></div><pre class="code-block hljs"><span class="hljs-attribute">lib</span>/armeabi/libFIFA12.so
+
+<span class="hljs-attribute">0x65992C</span>
+
+<span class="hljs-attribute">Original</span>:
+<span class="hljs-attribute">01</span> <span class="hljs-number">30</span> A0 <span class="hljs-number">13</span>
+<span class="hljs-attribute">movne</span> r3, #<span class="hljs-number">1</span>
+
+<span class="hljs-attribute">Parche</span>:
+<span class="hljs-attribute">00</span> <span class="hljs-number">30</span> A0 <span class="hljs-number">13</span>
+<span class="hljs-attribute">movne</span> r3, #<span class="hljs-number">0</span>
+</pre></div>
+<p>Y, a diferencia del parche que encontraste originalmente, <strong>no necesitamos eliminar <code>strbne r3, [r8, #3]</code></strong>. Eso es precisamente lo que parece preservar el funcionamiento de controles, zoom y cámara.</p>
+<p>Además, el script ya ha demostrado que puede:</p>
+<ol>
+<li>recibir directamente el APK;</li>
+<li>localizar <code>lib/armeabi/libFIFA12.so</code>;</li>
+<li>comprobar que es exactamente la versión esperada;</li>
+<li>aplicar el cambio;</li>
+<li>generar automáticamente <code>*_patched.apk</code>;</li>
+<li>dejar intacto el APK original.</li>
+</ol>
+<p>Eso da para un repositorio de GitHub bastante bueno, especialmente porque el trabajo de ingeniería inversa queda explicado y <strong>no necesitas distribuir el APK ni la <code>.so</code> de EA</strong>.</p>
+<p>Yo haría ahora una última cosa antes de publicarlo: calcular el <strong>SHA-256 de la <code>libFIFA12.so</code> parcheada y del APK generado</strong>, y conservar esos hashes en el README. Así cualquiera podrá verificar que ha obtenido exactamente el mismo resultado.</p>
+<p>Y en el README dejaría muy claro que el parche <strong>está hecho para una única versión concreta del <code>libFIFA12.so</code></strong>, identificada mediante SHA-256. Eso evitará bastantes problemas si alguien intenta utilizarlo con otra edición/revisión del juego.</p>
+<p>Has conseguido una solución bastante elegante: <strong>un parche de un solo byte que arregla el audio moderno sin romper la configuración del juego</strong>.</p>
+</div></div></div>
+  </div>
+  <div id="lb"><img id="lb-img"></div>
+  <div class="msg-nav" id="msgNav"></div>
+  <div class="msg-nav-popup" id="msgNavPopup"></div>
+  <script>
+    const lb = document.getElementById('lb');
+    const lbImg = document.getElementById('lb-img');
+    document.querySelectorAll('.content img').forEach(img => {
+      img.addEventListener('click', () => { lbImg.src = img.src; lb.classList.add('open'); });
+    });
+    lb.addEventListener('click', e => { if (e.target === lb) lb.classList.remove('open'); });
+    document.addEventListener('keydown', e => { if (e.key === 'Escape') lb.classList.remove('open'); });
+
+    (function () {
+      const userMsgs = [...document.querySelectorAll('.user-message[id^="user-msg-"]')];
+      const n = userMsgs.length;
+      if (!n) return;
+
+      const nav = document.getElementById('msgNav');
+      const popup = document.getElementById('msgNavPopup');
+
+      // Popup: one row per message.
+      const items = userMsgs.map((el) => {
+        const item = document.createElement('div');
+        item.className = 'msg-nav-item';
+        let text = el.textContent.trim().replace(/\s+/g, ' ');
+        if (!text) text = el.querySelector('img') ? 'Photo' : '…';
+        item.textContent = text.length > 60 ? text.slice(0, 60) + '…' : text;
+        item.addEventListener('click', () => el.scrollIntoView({ behavior: 'smooth', block: 'center' }));
+        popup.appendChild(item);
+        return item;
+      });
+
+      // Dash bar: capped at 20 marks, each covering an even slice of
+      // messages; clicking one jumps to the first message in its slice.
+      const numGroups = Math.min(n, 20);
+      const groupStarts = Array.from({ length: numGroups }, (_, g) => Math.floor(g * n / numGroups));
+      const dashes = groupStarts.map((startIdx) => {
+        const dash = document.createElement('div');
+        dash.className = 'msg-nav-dash';
+        dash.addEventListener('click', () => userMsgs[startIdx].scrollIntoView({ behavior: 'smooth', block: 'center' }));
+        nav.appendChild(dash);
+        return dash;
+      });
+
+      const groupOf = (idx) => {
+        let g = 0;
+        for (let i = 1; i < groupStarts.length; i++) if (groupStarts[i] <= idx) g = i;
+        return g;
+      };
+
+      let openTimer = null;
+      const openPopup = () => { clearTimeout(openTimer); popup.classList.add('open'); };
+      const closePopup = () => { openTimer = setTimeout(() => popup.classList.remove('open'), 120); };
+      nav.addEventListener('mouseenter', openPopup);
+      nav.addEventListener('mouseleave', closePopup);
+      popup.addEventListener('mouseenter', openPopup);
+      popup.addEventListener('mouseleave', closePopup);
+
+      const setActive = (idx) => {
+        items.forEach((item, i) => item.classList.toggle('active', i === idx));
+        const activeGroup = groupOf(idx);
+        dashes.forEach((dash, i) => dash.classList.toggle('active', i === activeGroup));
+        dashes[activeGroup]?.scrollIntoView({ block: 'nearest' });
+      };
+
+      let ticking = false;
+      const updateActive = () => {
+        ticking = false;
+        let idx = 0;
+        for (let i = 0; i < userMsgs.length; i++) {
+          if (userMsgs[i].getBoundingClientRect().top <= window.innerHeight * 0.5) idx = i;
+        }
+        setActive(idx);
+      };
+      window.addEventListener('scroll', () => {
+        if (!ticking) { ticking = true; requestAnimationFrame(updateActive); }
+      });
+      updateActive();
+    })();
+  </script>
+</body>
+</html>
