@@ -4,9 +4,15 @@
 
 If you play the game in a current device, you can have something like this:
 
+<!--
 <video src=assets/start.mp4 controls></video>
-
 <video src=assets/match.mp4 controls></video>
+-->
+
+https://github.com/user-attachments/assets/0dc4e751-8ef0-496a-86e6-62779d9fc917
+
+https://github.com/user-attachments/assets/3d414ccf-6081-498d-a54b-829dfb595f90
+
 
 
 
