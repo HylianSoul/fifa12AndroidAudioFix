@@ -12,7 +12,7 @@ https://github.com/user-attachments/assets/0dc4e751-8ef0-496a-86e6-62779d9fc917
 https://github.com/user-attachments/assets/3d414ccf-6081-498d-a54b-829dfb595f90
 
 
-This can be solved enabling the *forcing 32 bits binary emulation* if you use [VPhoneOS](https://play.google.com/store/apps/details?id=com.yoyo.snake.rush). The problem is you loose performance (*FIFA 12* is not a problem in my phone, but it is a problem in other games) and you have dependency with one specific application.
+This can be solved enabling the *forcing 32 bits binary emulation* if you use [VPhoneOS](https://play.google.com/store/apps/details?id=com.yoyo.snake.rush). The problem is you loose performance (*FIFA 12* is not a problem in my phone, but it is a problem with other games) and I do not like to have dependency with one specific application.
 
 I prefer to use [Virtual Master](https://play.google.com/store/apps/details?id=com.clone.android.dual.space) but I have this terrible bug using a different application (using a virtualization of a 32 bit Android system, too) in a phone with arm64-v8a (64 bit ARM architecture).
 
@@ -22,8 +22,8 @@ This patch is made to play this game in Virtual Master or other Android virtual 
 
 1. You need...
 
-    - You need to have an APK of the *FIFA 12* game.
-    - You need to have Python 3 installed and set it in you PATH.
+    - An APK of the *FIFA 12* game.
+    - Python 3 installed and set it in your PATH.
 
 2. Open a terminal in the folder with the *.py* file and the APK and execute...
 
