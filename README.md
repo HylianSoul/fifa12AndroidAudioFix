@@ -2,7 +2,7 @@
 
 **WARNING: the aim of this repository is not garantee the game works in current Android versions. The game is quite old and is always executed using a virtual machine (Virtual Master, VPhoneOS, for example) to working correctly. This patch only fixes its annoying sound in current devices.**
 
-You have videos with the original behaviour below.
+You have videos with the original behaviour below. If you cannot play the videos, you can download them in the *assets* folder of the repository.
 
 **Make sure the videos are not muted. The audio bug is clearly audible in these recordings.**
 
