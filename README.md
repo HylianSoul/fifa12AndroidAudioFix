@@ -40,7 +40,7 @@ This patch is made to play this game in Virtual Master or other Android virtual 
 
 This patch only modifies a bit from zero to one in the *libFIFA12.so* file.
 
-The code checks the SHA-256 of the *.so* file to ensure the patch can be applied. If you do not have the same checksum, it is not applied. You can delete or comment the following lines of the script to force the application of the patch, but I have not garantee the correct functionality of the new APK.
+The code checks the SHA-256 of the *.so* file to ensure the patch can be applied. If you do not have the same checksum, it is not applied. You can delete or comment the following lines of the script to force the application of the patch, but I do not garantee the correct functionality of the new APK.
 
 ```python
 if original_hash != EXPECTED_SHA256:
